@@ -1,0 +1,151 @@
+class QuizFightScene extends Phaser.Scene {
+  constructor() {
+    super({ key: 'QuizFightScene' });
+  }
+
+  preload() {
+    // Preload any assets if required (no images needed here).
+  }
+
+  create() {
+    // Initialize health values.
+    this.playerHealth = 3;
+    this.opponentHealth = 3;
+
+    // Set up graphics for health bars.
+    this.graphics = this.add.graphics();
+
+    // Set up a fixed question.
+    this.currentQuestion = {
+      question: "What is the capital of France?",
+      options: { A: "Paris", B: "London", C: "Berlin" },
+      correct: "A"
+    };
+
+    // Display initial health bars.
+    this.updateHealthBars();
+
+    // Show the first question.
+    this.showQuestion();
+  }
+
+  updateHealthBars() {
+    // Clear previous health bars.
+    this.graphics.clear();
+
+    // Draw the player's health bar.
+    this.graphics.fillStyle(0x00ff00, 1);  // Green for player health.
+    this.graphics.fillRect(50, 550, 200, 20);  // Test rectangle for player health bar
+    
+
+    // Draw the opponent's health bar.
+    this.graphics.fillStyle(0xff0000, 1);  // Red for opponent health.
+    this.graphics.fillRect(550, 50, 200 * (this.opponentHealth / 3), 20);
+  }
+
+  showQuestion() {
+    // Clear previous question and options.
+    this.children.removeAll();
+
+    // Display the quiz question.
+    this.add.text(50, 50, this.currentQuestion.question, { fontSize: '20px', fill: '#fff' });
+
+    // Create interactive options.
+    let optionA = this.add.text(50, 100, "A: " + this.currentQuestion.options.A, { fontSize: '20px', fill: '#fff' }).setInteractive();
+    let optionB = this.add.text(50, 150, "B: " + this.currentQuestion.options.B, { fontSize: '20px', fill: '#fff' }).setInteractive();
+    let optionC = this.add.text(50, 200, "C: " + this.currentQuestion.options.C, { fontSize: '20px', fill: '#fff' }).setInteractive();
+
+    // Set up click events for options.
+    optionA.on('pointerdown', () => { this.evaluateAnswer("A"); });
+    optionB.on('pointerdown', () => { this.evaluateAnswer("B"); });
+    optionC.on('pointerdown', () => { this.evaluateAnswer("C"); });
+  }
+
+  evaluateAnswer(selected) {
+    // Clear the screen to prepare for attack animations.
+    this.children.removeAll();
+
+    // Check if the answer is correct.
+    if (selected === this.currentQuestion.correct) {
+      console.log("Correct! You attack the opponent.");
+      this.opponentHealth--;
+      // Trigger player attack animation.
+      this.attackOpponent();
+    } else {
+      console.log("Wrong! The correct answer was " + this.currentQuestion.correct);
+      this.playerHealth--;
+      // Trigger opponent attack animation.
+      this.attackPlayer();
+    }
+
+    // Update health bars.
+    this.updateHealthBars();
+
+    // Check for game over condition.
+    if (this.playerHealth <= 0 || this.opponentHealth <= 0) {
+      this.endGame();
+    } else {
+      // Load the next question.
+      this.showQuestion();
+    }
+  }
+
+  attackOpponent() {
+    // Draw attack effect (text) to indicate the player is attacking.
+    let attackText = this.add.text(350, 250, "You attacked!", { fontSize: '30px', fill: '#0f0' });
+    attackText.setAlpha(0).setScale(1.5).tween({
+      targets: attackText,
+      alpha: 1,
+      scale: 2,
+      duration: 1000,
+      ease: 'Power2',
+      onComplete: () => {
+        attackText.destroy();
+      }
+    });
+  }
+
+  attackPlayer() {
+    // Draw attack effect (text) to indicate the opponent is attacking.
+    let attackText = this.add.text(350, 250, "Opponent attacked!", { fontSize: '30px', fill: '#f00' });
+    attackText.setAlpha(0).setScale(1.5).tween({
+      targets: attackText,
+      alpha: 1,
+      scale: 2,
+      duration: 1000,
+      ease: 'Power2',
+      onComplete: () => {
+        attackText.destroy();
+      }
+    });
+  }
+
+  endGame() {
+    // Game over message.
+    let message = "";
+    if (this.playerHealth <= 0) {
+      message = "Game Over! You lost.";
+    } else {
+      message = "Congratulations! You won.";
+    }
+
+    this.add.text(300, 300, message, { fontSize: '30px', fill: '#fff' });
+
+    // Optionally, offer a restart option (e.g., reload scene or restart the game).
+    this.time.delayedCall(2000, () => {
+      this.scene.restart();
+    });
+  }
+}
+
+// Configuring the Phaser game instance.
+const config = {
+  type: Phaser.AUTO,
+  width: 800,
+  height: 600,
+  backgroundColor: '#222',
+  scene: [QuizFightScene]
+};
+
+const game = new Phaser.Game(config);
+

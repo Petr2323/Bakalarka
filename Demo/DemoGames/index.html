@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cybersecurity Games</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            margin: 50px;
+        }
+
+        .menu {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .menu button {
+            padding: 15px 30px;
+            font-size: 18px;
+            cursor: pointer;
+            border: none;
+            background-color: #007BFF;
+            color: white;
+            border-radius: 10px;
+            transition: 0.3s;
+        }
+
+        .menu button:hover {
+            background-color: #0056b3;
+        }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.0/dist/phaser.min.js"></script>
+
+</head>
+
+<body>
+    <h1>Cybersecurity Games</h1>
+    <div class="menu">
+        <button onclick="location.href='emailGame.html'">Email Phishing Game</button>
+        <button onclick="location.href='endlessRunner.html'">3D Endless Runner</button>
+        <button onclick="location.href='dragDrop.html'">Drag & Drop Game</button>
+        <button onclick="location.href='quizFight.html'">Turn-Based Quiz Fight</button>
+    </div>
+</body>
+
+</html>
