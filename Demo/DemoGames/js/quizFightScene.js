@@ -11,6 +11,8 @@ class QuizFightScene extends Phaser.Scene {
     this.playerHealth = 3;
     this.opponentHealth = 3;
     this.maxHealth = 3;
+    this.options = [];
+
 
     this.graphics = this.add.graphics();
 
@@ -39,14 +41,48 @@ class QuizFightScene extends Phaser.Scene {
 
     this.updateHealthBars();
 
-    this.currentQuestion = {
-      question: "What is the capital of France?",
-      options: { A: "Paris", B: "London", C: "Berlin" },
-      correct: "A"
-    };
+    // Question bank
+    this.questionBank = [
+      {
+        question: "What is the capital of France?",
+        options: { A: "Paris", B: "London", C: "Berlin" },
+        correct: "A"
+      },
+      {
+        question: "What is 5 + 7?",
+        options: { A: "12", B: "10", C: "14" },
+        correct: "A"
+      },
+      {
+        question: "Which planet is known as the Red Planet?",
+        options: { A: "Venus", B: "Mars", C: "Jupiter" },
+        correct: "B"
+      },
+      {
+        question: "What is the largest ocean on Earth?",
+        options: { A: "Atlantic", B: "Indian", C: "Pacific" },
+        correct: "C"
+      },
+      {
+        question: "Who wrote 'Romeo and Juliet'?",
+        options: { A: "Shakespeare", B: "Dickens", C: "Tolstoy" },
+        correct: "A"
+      }
+    ];
+
+    this.shuffleQuestions();
+    this.currentQuestionIndex = 0;
 
     this.input.enabled = true;
     this.showQuestion();
+  }
+
+  shuffleQuestions() {
+    // Fisher-Yates shuffle
+    for (let i = this.questionBank.length - 1; i > 0; i--) {
+      let j = Math.floor(Math.random() * (i + 1));
+      [this.questionBank[i], this.questionBank[j]] = [this.questionBank[j], this.questionBank[i]];
+    }
   }
 
   updateHealthBars() {
@@ -85,23 +121,32 @@ class QuizFightScene extends Phaser.Scene {
       (barWidth - padding * 2) * (this.opponentHealth / this.maxHealth),
       barHeight - padding * 2
     );
+
+    // Bring graphics above background but below text/buttons
+    this.children.bringToTop(this.graphics);
   }
 
   showQuestion() {
-    // Clear old question/options but keep players, health bars
-    this.children.list.forEach(child => {
-      if (
-        child !== this.player &&
-        child !== this.opponent &&
-        child !== this.graphics &&
-        child.text !== "HRÁČ" &&
-        child.text !== "BOSS"
-      ) {
-        child.destroy();
-      }
-    });
+    // Destroy previous question text
+    if (this.questionText) {
+      this.questionText.destroy();
+    }
 
-    // Question text
+    // Destroy all old options
+    this.options.forEach(opt => {
+      if (opt) opt.destroy();
+    });
+    this.options = [];
+
+    // If no more questions, end game
+    if (this.currentQuestionIndex >= this.questionBank.length) {
+      this.endGame(true);
+      return;
+    }
+
+    this.currentQuestion = this.questionBank[this.currentQuestionIndex];
+
+    // Show question text
     this.questionText = this.add.text(50, 50, this.currentQuestion.question, {
       fontSize: '24px',
       fill: '#ccc',
@@ -109,7 +154,7 @@ class QuizFightScene extends Phaser.Scene {
       wordWrap: { width: 700 }
     });
 
-    // Options
+    // Style for options
     const optionStyle = {
       fontSize: '22px',
       fill: '#fff',
@@ -119,14 +164,33 @@ class QuizFightScene extends Phaser.Scene {
       fontStyle: 'bold'
     };
 
-    this.optionA = this.add.text(50, 110, "A: " + this.currentQuestion.options.A, optionStyle).setInteractive({useHandCursor: true});
-    this.optionB = this.add.text(50, 160, "B: " + this.currentQuestion.options.B, optionStyle).setInteractive({useHandCursor: true});
-    this.optionC = this.add.text(50, 210, "C: " + this.currentQuestion.options.C, optionStyle).setInteractive({useHandCursor: true});
+    // Create new options and store references
+    this.optionA = this.add.text(50, 110, "A: " + this.currentQuestion.options.A, optionStyle).setInteractive({ useHandCursor: true });
+    this.optionB = this.add.text(50, 160, "B: " + this.currentQuestion.options.B, optionStyle).setInteractive({ useHandCursor: true });
+    this.optionC = this.add.text(50, 210, "C: " + this.currentQuestion.options.C, optionStyle).setInteractive({ useHandCursor: true });
+
+    this.options = [this.optionA, this.optionB, this.optionC];
 
     this.optionA.on('pointerdown', () => this.handleAnswer("A"));
     this.optionB.on('pointerdown', () => this.handleAnswer("B"));
     this.optionC.on('pointerdown', () => this.handleAnswer("C"));
   }
+
+
+
+  resetOptionStyles() {
+    const defaultStyle = {
+      fill: '#fff',
+      backgroundColor: '#222244',
+    };
+    [this.optionA, this.optionB, this.optionC].forEach(opt => {
+      opt.setStyle({
+        fill: defaultStyle.fill,
+        backgroundColor: defaultStyle.backgroundColor,
+      });
+    });
+  }
+
 
   handleAnswer(selected) {
     if (!this.input.enabled) return;
@@ -174,7 +238,7 @@ class QuizFightScene extends Phaser.Scene {
   }
 
   attackOpponent(callback) {
-    let attackText = this.add.text(this.opponent.x, this.opponent.y - this.opponent.height / 2 - 50, "Ty útočíš!", {
+    let attackText = this.add.text(this.opponent.x, this.opponent.y - this.opponent.height / 2 - 50, "Hráč útočí!", {
       fontSize: '20px',
       fill: '#0f0',
       fontStyle: 'bold',
@@ -218,16 +282,19 @@ class QuizFightScene extends Phaser.Scene {
   }
 
   checkGameStatus() {
-    if (this.playerHealth <= 0 || this.opponentHealth <= 0) {
-      this.endGame();
+    if (this.playerHealth <= 0) {
+      this.endGame(false);
+    } else if (this.opponentHealth <= 0) {
+      this.endGame(true);
     } else {
+      this.currentQuestionIndex++;
       this.input.enabled = true;
       this.showQuestion();
     }
   }
 
-  endGame() {
-    const message = this.playerHealth <= 0 ? "Prohrál jsi!" : "Gratuluji! Získáváš 3 body.";
+  endGame(playerWon) {
+    const message = playerWon ? "Gratuluji! Získáváš 3 body." : "Prohrál jsi!";
 
     this.add.text(400, 300, message, {
       fontSize: '36px',
