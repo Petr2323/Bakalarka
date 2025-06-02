@@ -65,15 +65,18 @@ class SuspiciousLinkGame extends Phaser.Scene {
             "Na určení máš 7 sekund. Za správnou odpověď máš bod."
         ];
 
+        this.tutorialInstructions = [];
         let startY = panelY + 130;
+
         instructions.forEach((line, i) => {
-            this.add.text(this.gameWidth / 2, startY + i * 35, line, {
+            const text = this.add.text(this.gameWidth / 2, startY + i * 35, line, {
                 fontSize: '22px',
                 fill: '#ffffff',
                 stroke: '#000000',
                 strokeThickness: 3,
                 align: 'center'
             }).setOrigin(0.5);
+            this.tutorialInstructions.push(text);
         });
 
         // start button
@@ -121,11 +124,13 @@ class SuspiciousLinkGame extends Phaser.Scene {
             this.tutorialTitle.destroy();
             this.startButtonBg.destroy();
             this.startButton.destroy();
+            this.tutorialInstructions.forEach(t => t.destroy());
 
             // start game
             this.startGame();
         });
     }
+
 
     startGame() {
         this.score = 0;
