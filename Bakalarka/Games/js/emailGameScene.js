@@ -1,6 +1,35 @@
 class EmailGameScene extends Phaser.Scene {
     constructor() {
         super({ key: 'EmailGameScene' });
+
+        // Array of emails, each with text and suspicious parts
+        this.emails = [
+            {
+                sender: "From: suspicious@example.com",
+                title: "Subject: Urgent - Please update",
+                body: "Hello,\n\nThis email looks safe but watch out for subtle tricks!\n\nBest,\nPetr.",
+                suspicious: ['sender', 'title']
+            },
+            {
+                sender: "From: bank@secure.com",
+                title: "Subject: Your account will be suspended",
+                body: "Dear customer,\n\nPlease verify your account information immediately.\n\nThank you.",
+                suspicious: ['title', 'body']
+            },
+            {
+                sender: "From: friend@example.com",
+                title: "Subject: Check this out!",
+                body: "Hey,\n\nLook at this cool link I found.\n\nCheers,\nTom.",
+                suspicious: []  // no suspicious parts here
+            },
+            {
+                sender: "From: admin@company.com",
+                title: "Subject: Password reset required",
+                body: "Your password expired. Please reset it using the link below.",
+                suspicious: ['body']
+            }
+            // Add more emails here as needed
+        ];
     }
 
     preload() { }
@@ -121,7 +150,6 @@ class EmailGameScene extends Phaser.Scene {
 
     initGame() {
         this.suspiciousSelections = [];
-        this.correctSuspicious = ['sender', 'title'];
         this.textElements = {};
 
         this.cameras.main.setBackgroundColor('#1a1a2e');
@@ -135,12 +163,14 @@ class EmailGameScene extends Phaser.Scene {
             .setOrigin(0)
             .setStrokeStyle(3, 0x6441a5);
 
-        this.createEmailPart('sender', "From: suspicious@example.com", emailX + 20, emailY + 20, emailWidth - 40, 50);
-        this.createEmailPart('title', "Subject: Urgent - Please update", emailX + 20, emailY + 90, emailWidth - 40, 50);
-        this.createEmailPart('body',
-            "Hello,\n\nThis email looks safe but watch out for subtle tricks!\n\nBest,\nPetr.",
-            emailX + 20, emailY + 160, emailWidth - 40, 160
-        );
+        // Pick random email
+        this.currentEmail = Phaser.Utils.Array.GetRandom(this.emails);
+        this.correctSuspicious = this.currentEmail.suspicious;
+
+        // Create email parts using current email data
+        this.createEmailPart('sender', this.currentEmail.sender, emailX + 20, emailY + 20, emailWidth - 40, 50);
+        this.createEmailPart('title', this.currentEmail.title, emailX + 20, emailY + 90, emailWidth - 40, 50);
+        this.createEmailPart('body', this.currentEmail.body, emailX + 20, emailY + 160, emailWidth - 40, 160);
 
         const submitButton = this.add.text(emailX + 20, emailY + emailHeight + 25, "✅ Submit", {
             fontSize: '28px',
@@ -168,6 +198,7 @@ class EmailGameScene extends Phaser.Scene {
 
         this.createLegend(emailX + 500, emailY + emailHeight + 15);
     }
+
 
     createEmailPart(key, content, x, y, width, height) {
         const border = this.add.rectangle(x, y, width, height, 0x3a345e)
