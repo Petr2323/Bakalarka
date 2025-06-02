@@ -1,15 +1,38 @@
 class DragDropScene extends Phaser.Scene {
   constructor() {
     super({ key: 'DragDropScene' });
+
+    // Sentences with up to 5 words
+    this.sentences = [
+      ["Phaser", "makes", "game", "development", "fun"],
+      ["Coding", "is", "like", "solving", "puzzles"],
+      ["JavaScript", "rocks", "web", "apps"],
+      ["Drag", "and", "drop", "games"],
+      ["Practice", "helps", "you", "improve", "skills"],
+      ["Keep", "learning"],
+      ["Good", "luck"]
+    ];
+
+    // Filter sentences with <= 5 words only
+    this.sentences = this.sentences.filter(sentence => sentence.length <= 5);
   }
 
   create() {
-    this.correctOrder = ["Phaser", "makes", "game", "development", "fun"];
-    const scrambled = Phaser.Utils.Array.Shuffle([...this.correctOrder]);
+    this.initGame();
+  }
+
+  initGame() {
+    this.submitted = false;
     this.wordTexts = [];
     this.originalPositions = new Map();
-    this.dropAssignments = Array(this.correctOrder.length).fill(null);
-    this.submitted = false;
+    this.dropAssignments = [];
+
+    // Pick random sentence (<= 5 words)
+    this.correctOrder = Phaser.Utils.Array.GetRandom(this.sentences);
+    this.wordCount = this.correctOrder.length;
+
+    // Scramble words
+    const scrambled = Phaser.Utils.Array.Shuffle([...this.correctOrder]);
 
     const wordStyle = {
       fontSize: '18px',
@@ -23,22 +46,34 @@ class DragDropScene extends Phaser.Scene {
       align: 'center',
     };
 
-    // Create draggable words
+    // Calculate spacing dynamically based on word count
+    const sceneWidth = this.sys.game.config.width;
+    const marginX = 50;
+    const availableWidth = sceneWidth - marginX * 2;
+    const spacingX = availableWidth / this.wordCount;
+
+    // Create draggable words evenly spaced horizontally
     scrambled.forEach((word, i) => {
-      const wordText = this.add.text(120 + i * 210, 100, word, wordStyle)
+      const x = marginX + spacingX * i + spacingX / 2;
+      const y = 100;
+
+      const wordText = this.add.text(x, y, word, wordStyle)
         .setOrigin(0.5)
         .setInteractive({ useHandCursor: true });
+
       this.input.setDraggable(wordText);
       this.wordTexts.push(wordText);
       this.originalPositions.set(wordText, { x: wordText.x, y: wordText.y });
     });
 
-    // Drop zones
+    // Create drop zones spaced evenly at y=300
     this.dropZones = [];
-    for (let i = 0; i < this.correctOrder.length; i++) {
-      const x = 120 + i * 210;
+    this.dropAssignments = Array(this.wordCount).fill(null);
+
+    for (let i = 0; i < this.wordCount; i++) {
+      const x = marginX + spacingX * i + spacingX / 2;
       const y = 300;
-      const zoneWidth = 200;
+      const zoneWidth = Math.min(200, spacingX * 0.8); // max 200px, else smaller if spacing is less
       const zoneHeight = 80;
 
       const zone = this.add.zone(x, y, zoneWidth, zoneHeight).setRectangleDropZone(zoneWidth, zoneHeight);
@@ -68,10 +103,12 @@ class DragDropScene extends Phaser.Scene {
     this.input.on('drop', (pointer, gameObject, dropZone) => {
       const zoneIndex = this.dropZones.indexOf(dropZone);
 
+      // Return previous word if zone occupied
       if (this.dropAssignments[zoneIndex]) {
         this.returnToOriginal(this.dropAssignments[zoneIndex]);
       }
 
+      // Remove word from previous drop assignment
       for (let i = 0; i < this.dropAssignments.length; i++) {
         if (this.dropAssignments[i] === gameObject) {
           this.dropAssignments[i] = null;
@@ -84,6 +121,7 @@ class DragDropScene extends Phaser.Scene {
     });
 
     // Submit button
+    if (this.submitButton) this.submitButton.destroy();
     this.submitButton = this.add.text(550, 400, "✅ Odeslat", {
       fontSize: '26px',
       backgroundColor: '#008800',
@@ -98,41 +136,24 @@ class DragDropScene extends Phaser.Scene {
     this.submitButton.on('pointerdown', () => {
       if (!this.submitted) {
         this.checkAnswer();
-        this.submitted = true;
       }
     });
-
-    // Reset button
-    this.resetButton = this.add.text(750, 400, "🔄 Restart", {
-      fontSize: '26px',
-      backgroundColor: '#880000',
-      color: '#fff',
-      padding: { x: 18, y: 12 },
-      borderRadius: 8,
-      fontStyle: 'bold',
-      stroke: '#440000',
-      strokeThickness: 4,
-    }).setInteractive({ useHandCursor: true }).setOrigin(0.5);
-
-    this.resetButton.on('pointerdown', () => {
-      if (!this.submitted) {
-        this.resetGame();
-      } else {
-        this.feedbackText.setText("⚠️ Nelze restartovat, už jsi hru dohrál.");
-        this.feedbackText.setColor('#ffcc00');
-      }
-    });
+    
 
     // Feedback text
-    this.feedbackText = this.add.text(550, 470, '', {
-      fontSize: '24px',
-      color: '#eee',
-      fontStyle: 'bold',
-      wordWrap: { width: 900 },
-      align: 'center',
-      stroke: '#000',
-      strokeThickness: 3,
-    }).setOrigin(0.5);
+    if (!this.feedbackText) {
+      this.feedbackText = this.add.text(sceneWidth / 2, 470, '', {
+        fontSize: '24px',
+        color: '#eee',
+        fontStyle: 'bold',
+        wordWrap: { width: sceneWidth - 100 },
+        align: 'center',
+        stroke: '#000',
+        strokeThickness: 3,
+      }).setOrigin(0.5);
+    } else {
+      this.feedbackText.setText('');
+    }
   }
 
   returnToOriginal(word) {
@@ -147,17 +168,12 @@ class DragDropScene extends Phaser.Scene {
     }
   }
 
-  resetGame() {
-    this.wordTexts.forEach(word => this.returnToOriginal(word));
-    this.feedbackText.setText('');
-    this.submitted = false;
-  }
-
   checkAnswer() {
     const userOrder = this.dropAssignments.map(w => w ? w.text : null);
     if (userOrder.includes(null)) {
       this.feedbackText.setText("⚠️ Umísti všechna slova.");
       this.feedbackText.setColor('#ffff00');
+      this.submitted = false;
       return;
     }
 
@@ -168,6 +184,7 @@ class DragDropScene extends Phaser.Scene {
       this.feedbackText.setText("❌ Správné pořadí je: " + this.correctOrder.join(" "));
       this.feedbackText.setColor('#ff4444');
     }
+    this.submitted = true;  // mark as submitted only after all words placed and answer checked
   }
 }
 
