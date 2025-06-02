@@ -1,102 +1,182 @@
 class DragDropScene extends Phaser.Scene {
-  constructor() {
+    constructor() {
       super({ key: 'DragDropScene' });
-  }
-
-  preload() {
-      // Load assets if required.
-  }
-
-  create() {
-      // Define the correct sentence order.
+    }
+  
+    create() {
       this.correctOrder = ["Phaser", "makes", "game", "development", "fun"];
-      
-      // Shuffle the words.
-      let scrambled = Phaser.Utils.Array.Shuffle([...this.correctOrder]);
+      const scrambled = Phaser.Utils.Array.Shuffle([...this.correctOrder]);
       this.wordTexts = [];
-
-      // Create draggable text objects.
-      scrambled.forEach((word, index) => {
-          let wordText = this.add.text(100 + index * 100, 200, word, { fontSize: '20px', fill: '#fff' });
-          wordText.setInteractive();
-          this.input.setDraggable(wordText);
-          this.wordTexts.push(wordText);
+      this.originalPositions = new Map();
+      this.dropAssignments = Array(this.correctOrder.length).fill(null);
+      this.submitted = false;  // track submission status
+  
+      const style = {
+        fontSize: '16px',
+        backgroundColor: '#444',
+        color: '#fff',
+        padding: { x: 10, y: 6 },
+        borderRadius: 4
+      };
+  
+      // Create draggable words
+      scrambled.forEach((word, i) => {
+        const wordText = this.add.text(120 + i * 205, 100, word, style)
+          .setOrigin(0.5)
+          .setInteractive({ useHandCursor: true });
+  
+        this.input.setDraggable(wordText);
+        this.wordTexts.push(wordText);
+        this.originalPositions.set(wordText, { x: wordText.x, y: wordText.y });
+  
+        // Clicking words no longer unplaces, so no pointerdown handler here
       });
-
-      // Create drop zones where words should be placed.
+  
+      // Drop zones (same as before)
       this.dropZones = [];
       for (let i = 0; i < this.correctOrder.length; i++) {
-          let zone = this.add.zone(100 + i * 100, 400, 80, 40).setRectangleDropZone(80, 40);
-          // Optional: Draw a rectangle to visualize the zone.
-          let graphics = this.add.graphics();
-          graphics.lineStyle(2, 0xff0000);
-          graphics.strokeRect(zone.x - 40, zone.y - 20, 80, 40);
-          this.dropZones.push(zone);
+        const x = 120 + i * 205;
+        const y = 300;
+        const zoneWidth = 200;
+        const zoneHeight = 80;
+  
+        const zone = this.add.zone(x, y, zoneWidth, zoneHeight).setRectangleDropZone(zoneWidth, zoneHeight);
+        const graphics = this.add.graphics();
+        graphics.lineStyle(2, 0x00ffff);
+        graphics.strokeRoundedRect(x - zoneWidth / 2, y - zoneHeight / 2, zoneWidth, zoneHeight, 10);
+  
+        this.dropZones.push(zone);
       }
-
-      // Set up drag events.
+  
+      // Drag events (same as before)
       this.input.on('dragstart', (pointer, gameObject) => {
-          gameObject.setTint(0xff0000);
+        gameObject.setStyle({ backgroundColor: '#666' });
       });
-
+  
       this.input.on('drag', (pointer, gameObject, dragX, dragY) => {
-          gameObject.x = dragX;
-          gameObject.y = dragY;
+        gameObject.x = dragX;
+        gameObject.y = dragY;
       });
-
+  
       this.input.on('dragend', (pointer, gameObject, dropped) => {
-          gameObject.clearTint();
-          if (!dropped) {
-              // Return to original position if not dropped in a zone.
-              gameObject.x = gameObject.input.dragStartX;
-              gameObject.y = gameObject.input.dragStartY;
-          }
+        gameObject.setStyle({ backgroundColor: '#444' });
+        if (!dropped) this.returnToOriginal(gameObject);
       });
-
+  
       this.input.on('drop', (pointer, gameObject, dropZone) => {
-          // Snap the word to the center of the drop zone.
-          gameObject.x = dropZone.x - gameObject.width / 2;
-          gameObject.y = dropZone.y - gameObject.height / 2;
-          gameObject.setData('droppedIndex', this.dropZones.indexOf(dropZone));
-
-          // Once all words are placed, check the order.
-          if (this.allWordsDropped()) {
-              this.checkOrder();
+        const zoneIndex = this.dropZones.indexOf(dropZone);
+  
+        // Unplace old word in this zone if needed
+        if (this.dropAssignments[zoneIndex]) {
+          this.returnToOriginal(this.dropAssignments[zoneIndex]);
+        }
+  
+        // Remove current word from any old zone
+        for (let i = 0; i < this.dropAssignments.length; i++) {
+          if (this.dropAssignments[i] === gameObject) {
+            this.dropAssignments[i] = null;
           }
-      }, this);
-
-      // Provide feedback text.
-      this.feedbackText = this.add.text(300, 500, '', { fontSize: '24px', fill: '#fff' });
-  }
-
-  allWordsDropped() {
-      return this.wordTexts.every(word => word.getData('droppedIndex') !== undefined);
-  }
-
-  checkOrder() {
-      // Sort the words based on the drop zone order.
-      let order = this.wordTexts
-          .slice()
-          .sort((a, b) => a.getData('droppedIndex') - b.getData('droppedIndex'))
-          .map(word => word.text);
-
-      // Check if the order is correct.
-      if (JSON.stringify(order) === JSON.stringify(this.correctOrder)) {
-          this.feedbackText.setText("✅ Correct Order!");
-          this.feedbackText.setColor("#0f0");
-      } else {
-          this.feedbackText.setText("❌ Incorrect Order. Try Again.");
-          this.feedbackText.setColor("#f00");
+        }
+  
+        // Assign and snap to zone
+        this.dropAssignments[zoneIndex] = gameObject;
+        gameObject.x = dropZone.x;
+        gameObject.y = dropZone.y;
+      });
+  
+      // Submit button
+      this.submitButton = this.add.text(550, 400, "✅ Odeslat", {
+        fontSize: '22px',
+        backgroundColor: '#008800',
+        color: '#fff',
+        padding: { x: 16, y: 8 },
+        borderRadius: 5
+      }).setInteractive({ useHandCursor: true }).setOrigin(0.5);
+  
+      this.submitButton.on('pointerdown', () => {
+        this.checkAnswer();
+        this.submitted = true;  // mark submitted
+      });
+  
+      // Reset button
+      this.resetButton = this.add.text(550+180, 400, "🔄 Restart", {
+        fontSize: '22px',
+        backgroundColor: '#880000',
+        color: '#fff',
+        padding: { x: 16, y: 8 },
+        borderRadius: 5
+      }).setInteractive({ useHandCursor: true }).setOrigin(0.5);
+  
+      this.resetButton.on('pointerdown', () => {
+        if (!this.submitted) {
+          this.resetGame();
+        } else {
+          // Optional: feedback if already submitted
+          this.feedbackText.setText("⚠️ Nelze restartovat, už jsi hru dohrál.");
+          this.feedbackText.setColor('#ffcc00');
+        }
+      });
+  
+      this.feedbackText = this.add.text(400, 460, '', {
+        fontSize: '20px',
+        color: '#fff',
+        wordWrap: { width: 1000, useAdvancedWrap: true }, // wrap text nicely within 1000px width
+        align: 'center'
+      }).setOrigin(0.5, 0);  // center horizontally, align top vertically
+      
+    }
+  
+    isInOriginalPosition(word) {
+      const orig = this.originalPositions.get(word);
+      return word.x === orig.x && word.y === orig.y;
+    }
+  
+    returnToOriginal(word) {
+      const pos = this.originalPositions.get(word);
+      word.x = pos.x;
+      word.y = pos.y;
+  
+      for (let i = 0; i < this.dropAssignments.length; i++) {
+        if (this.dropAssignments[i] === word) {
+          this.dropAssignments[i] = null;
+        }
       }
+    }
+  
+    resetGame() {
+      // Return all words to original positions and clear assignments
+      this.wordTexts.forEach(word => this.returnToOriginal(word));
+      this.feedbackText.setText('');
+      this.submitted = false;
+    }
+  
+    checkAnswer() {
+      const userOrder = this.dropAssignments.map(w => w ? w.text : null);
+      if (userOrder.includes(null)) {
+        this.feedbackText.setText("⚠️ Umísti všechna slova.");
+        this.feedbackText.setColor('#ffff00');
+        return;
+      }
+  
+      if (JSON.stringify(userOrder) === JSON.stringify(this.correctOrder)) {
+        this.feedbackText.setText("✅ Správně! Získáváš 1 bod.");
+        this.feedbackText.setColor('#00ff00');
+      } else {
+        this.feedbackText.setText(
+          "❌ Správné pořadí je: " + this.correctOrder.join(" ")
+        );
+        this.feedbackText.setColor('#ff0000');
+      }
+    }
   }
-}
+  
 
 const config = {
-  type: Phaser.AUTO,
-  width: 800,
-  height: 600,
-  backgroundColor: '#222',
-  scene: [DragDropScene]
+    type: Phaser.AUTO,
+    width: 1100,
+    height: 550,
+    backgroundColor: '#1d1d1d',
+    scene: [DragDropScene]
 };
 
 const game = new Phaser.Game(config);
