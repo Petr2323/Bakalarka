@@ -44,29 +44,94 @@ class QuizFightScene extends Phaser.Scene {
     // Question bank
     this.questionBank = [
       {
-        question: "What is the capital of France?",
-        options: { A: "Paris", B: "London", C: "Berlin" },
+        question: "Co je phishing?",
+        options: {
+          A: "Podvodné pokusy získat osobní údaje přes e-mail, zprávy nebo web",
+          B: "Rybaření se speciálním prutem",
+          C: "Podvodné pokusy s cílem změnit hesla v počítači"
+        },
         correct: "A"
       },
       {
-        question: "What is 5 + 7?",
-        options: { A: "12", B: "10", C: "14" },
-        correct: "A"
-      },
-      {
-        question: "Which planet is known as the Red Planet?",
-        options: { A: "Venus", B: "Mars", C: "Jupiter" },
+        question: "Jaké jsou nejčastější cíle ransomwaru?",
+        options: {
+          A: "Získat osobní údaje",
+          B: "Uzamknout počítač a žádat výkupné za odemčení",
+          C: "Uzamknout počítač navždy"
+        },
         correct: "B"
       },
       {
-        question: "What is the largest ocean on Earth?",
-        options: { A: "Atlantic", B: "Indian", C: "Pacific" },
+        question: "Co je spam?",
+        options: {
+          A: "Nechtěné nebo nevyžádané e-maily či zprávy",
+          B: "Důležité e-maily či zprávy",
+          C: "Podvodná webová stránka s cílem získat údaje od uživatele"
+        },
+        correct: "A"
+      },
+      {
+        question: "Co je trojský kůň v kybernetice?",
+        options: {
+          A: "Malware, který se skrývá jen ve videohrách a škodí počítači",
+          B: "Speciální typ antiviru",
+          C: "Malware, který se tváří jako aplikace, ale škodí počítači"
+        },
+        correct: "B"
+      },
+      {
+        question: "Jak se můžeme chránit před kybernetickými hrozbami?",
+        options: {
+          A: "Používat silná hesla a aktualizovat software",
+          B: "Používat silná hesla a aktualizovat software jednou za půl roku",
+          C: "Používat stejné heslo na všech účtech"
+        },
+        correct: "A"
+      },
+      {
+        question: "Proč je důležité mít aktualizovaný antivirový program?",
+        options: {
+          A: "Zlepšuje rychlost počítače",
+          B: "Pomáhá odhalit a odstranit škodlivý software",
+          C: "Zvyšuje kvalitu připojení k internetu"
+        },
+        correct: "B"
+      },
+      {
+        question: "Co bys měl udělat, když dostaneš podezřelý e-mail?",
+        options: {
+          A: "Otevřít ho a kliknout na odkazy",
+          B: "Označit ho jako spam nebo ho smazat",
+          C: "Poslat ho kamarádovi"
+        },
+        correct: "B"
+      },
+      {
+        question: "Co je silné heslo?",
+        options: {
+          A: "Jednoduché a snadno zapamatovatelné",
+          B: "Dlouhé a obsahuje různé čísla a velikosti písmen",
+          C: "Dlouhé a obsahuje různé znaky, čísla a písmena"
+        },
         correct: "C"
       },
       {
-        question: "Who wrote 'Romeo and Juliet'?",
-        options: { A: "Shakespeare", B: "Dickens", C: "Tolstoy" },
-        correct: "A"
+        question: "Proč je důležité nesdílet své heslo s ostatními?",
+        options: {
+          A: "Protože by mohli získat přístup k tvému účtu",
+          B: "Protože heslo je tajné a nikdo ho nesmí znát",
+          C: "Obojí je správně"
+        },
+        correct: "C"
+      },
+      {
+        question: "Co znamená, když ti někdo nabízí 'dárky zdarma' na internetu?",
+        options: {
+          A: "Je to běžná nabídka, kterou můžeš využít",
+          B: "Může jít o podvod nebo pokus o získání tvých osobních informací",
+          C: "Vždy je to bezpečné a ověřené"
+        },
+        correct: "B"
       }
     ];
 
