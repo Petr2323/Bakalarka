@@ -12,16 +12,27 @@ class SuspiciousLinkGame extends Phaser.Scene {
         this.gameHeight = this.sys.game.config.height;
 
         this.links = [
-            { url: "http://safe-site.com", suspicious: false },
-            { url: "http://secure-login.example.com", suspicious: false },
-            { url: "http://192.168.1.1", suspicious: false },
-            { url: "http://secure-login.paypal.com.fake.com", suspicious: true },
-            { url: "http://update-your-password-now.com", suspicious: true },
-            { url: "http://paypal.com.login.update-info.com", suspicious: true },
-            { url: "http://example.com", suspicious: false },
-            { url: "http://free-gift-card.scam.com", suspicious: true },
-            { url: "http://login.microsoft.com", suspicious: false },
-            { url: "http://microsoft.com.verify-account.com", suspicious: true }
+            { url: "https://www.youtub.com", suspicious: true },
+            { url: "https://www.csob.ru", suspicious: true },
+            { url: "https://www.seznam.cz-login.com", suspicious: true },
+            { url: "https://www.facebook.cze", suspicious: true },
+            { url: "https://www.instagrm.com", suspicious: true },
+            { url: "https://www.email.seznam.cz/?hack=true", suspicious: true },
+            { url: "https://www.bakalari.vip", suspicious: true },
+            { url: "https://mapy.cz-find.net", suspicious: true },
+            { url: "https://wwe.zsnestemice.cz", suspicious: true },
+            { url: "https://www.zsnestem1ce.cz", suspicious: true },
+
+            { url: "https://www.youtube.com", suspicious: false },
+            { url: "https://www.csob.cz", suspicious: false },
+            { url: "https://www.email.seznam.cz", suspicious: false },
+            { url: "https://www.facebook.com", suspicious: false },
+            { url: "https://www.instagram.com", suspicious: false },
+            { url: "https://www.email.seznam.cz/?action=login", suspicious: false },
+            { url: "https://www.bakalari.cz", suspicious: false },
+            { url: "https://www.mapy.cz/?q=Neštěmice", suspicious: false },
+            { url: "https://www.google.com/maps", suspicious: false },
+            { url: "https://www.zsnestemice.cz", suspicious: false },
         ];
 
         this.score = 0;
@@ -295,7 +306,7 @@ class SuspiciousLinkGame extends Phaser.Scene {
                 const correctStr = item.correctSuspicious ? "Podezřelá" : "Bezpečná";
 
                 this.add.text(this.gameWidth / 2, startY + 35 + index * 30,
-                    `${item.url} | Vaše odpověď: ${userAnsStr} | Správně: ${correctStr}`, {
+                    `${item.url} | Správná odpověď: ${correctStr}`, {
                     fontSize: '18px',
                     fill: '#ffffff',
                     stroke: '#000000',

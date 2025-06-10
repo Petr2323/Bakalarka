@@ -5,30 +5,65 @@ class EmailGameScene extends Phaser.Scene {
         // Array of emails, each with text and suspicious parts
         this.emails = [
             {
-                sender: "From: suspicious@example.com",
-                title: "Subject: Urgent - Please update",
-                body: "Hello,\n\nThis email looks safe but watch out for subtle tricks!\n\nBest,\nPetr.",
+                sender: "Od: podpora@sesnam.cz",
+                title: "Předmět: POZOR!!! Vaše účty budou zablokovány!!!!!!!",
+                body: "Dobrý den,\n\nProsíme vás o zkontrolování údajů ve vašem účtu. \n\nDěkujeme, podpora týmu Seznam.",
                 suspicious: ['sender', 'title']
             },
             {
-                sender: "From: bank@secure.com",
-                title: "Subject: Your account will be suspended",
-                body: "Dear customer,\n\nPlease verify your account information immediately.\n\nThank you.",
-                suspicious: ['title', 'body']
-            },
-            {
-                sender: "From: friend@example.com",
-                title: "Subject: Check this out!",
-                body: "Hey,\n\nLook at this cool link I found.\n\nCheers,\nTom.",
-                suspicious: []  // no suspicious parts here
-            },
-            {
-                sender: "From: admin@company.com",
-                title: "Subject: Password reset required",
-                body: "Your password expired. Please reset it using the link below.",
+                sender: "Od: info@vasebanka.cz",
+                title: "Předmět: Nutná kontrola vašeho bankovního účtu",
+                body: "Vážený zákasníku,\n\nVaše banka zjistil podezřelé transaktion, proto zvás prosíme o zadání važih přihlašovacích údajú v odpovědi na tuto správu.\n\nVďaka",
                 suspicious: ['body']
+            },
+            {
+                sender: "Od: pepa.novy@seznam.cz",
+                title: "Předmět: Máme úkol z Fyziky!",
+                body: "Ahoj,\n\nZjistil jsem, že máme úkol z Fyziky, je to úloha 5.1.3c. Klidně ti s tím pomůžu, ozvi se.",
+                suspicious: []
+            },
+            {
+                sender: "Od: reditel@hluboka150.ru",
+                title: "Předmět: ZmĚNA!! Výlet se zdraží!!!!",
+                body: "Dobrý den žáci,\n\n Zítřejší výlet se nečekaně zdražil, potřebuji abyste poslali 250Kč na účet 256987456/2010 s VS 1256 a v poznámce napsali Vaše jméno - výlet. Omlouvám se za vzniklé potíže. \n\n S pozdravem, ředitel",
+                suspicious: ['sender', 'title', 'body']
+            },
+            {
+                sender: "Od: podpora@seznam.cz",
+                title: "Předmět: URGENTNÍ! Odpovězte rychle",
+                body: "Vážený uživateli,\n\nNa vašem účtu byla zaznamenána neobvyklá aktivita. Pokud jste to nebyl vy, kontaktujte nás.",
+                suspicious: ['title']
+            },
+            {
+                sender: "Od: alenka.zvonokva@xyz.cz",
+                title: "Předmět: Gratulujeme! Vyhráli jste!",
+                body: "Váš účet je náhodně vybrán k výhře peněz. Napište nám číslo vašeho účtu, abychom Vám peníze mohli poslat.",
+                suspicious: ['sender', 'body', 'title']
+            },
+            {
+                sender: "Od: podpora@firma.cz",
+                title: "Předmět: Aktualizace informací o vašem zákaznickém účtu",
+                body: "Vážený zákazníku,\n\nProsíme o potvrzení vašich údajů, abychom mohli pokračovat ve službách. Úpravy proveďte po přihlášení k Vašemu účtu v záložce Nastavení údajů. \n\nDěkujeme, že jste s námi, vaše Firma",
+                suspicious: []
+            },
+            {
+                sender: "Od: ucetni@firma.cs",
+                title: "Předmět: Vaše faktura je připravena",
+                body: "Dobrý den,\n\nVaše faktura za provedenou práci je k dispozici v příloze.",
+                suspicious: ['sender']
+            },
+            {
+                sender: "Od: podpora@firma.cz",
+                title: "Předmět: Váš účet byl deaktivován",
+                body: "Váš účet byl dočasně deaktivován kvůli podezřelé aktivitě. Klikněte na odkaz a ověřte si to. https://www.f1rma.net\n\n Děkujeme za pochopení, vaše Firma",
+                suspicious: ['body']
+            },
+            {
+                sender: "Od: info@seznam.cs",
+                title: "Předmět: Důležitá aktualizace účtu",
+                body: "Vážený uživateli,\n\nProsíme vás o potvrzení vašich údajů prostřednictvím odkazu níže.\n\n https://www.seznan.cz/ucet",
+                suspicious: ['sender', 'body']
             }
-            // Add more emails here as needed
         ];
     }
 

@@ -1,9 +1,11 @@
 class RunnerGameScene extends Phaser.Scene {
   constructor() {
     super({ key: 'RunnerGameScene' });
-    this.weakPasswords = ["123456", "password", "qwerty"];
-    this.mediumPasswords = ["hello2023", "summer22", "myDog123"];
-    this.strongPasswords = ["G!6r$T2p#z", "9uV&x7@wL!", "K@3lP#z!8x"];
+    this.weakPasswords = ["123456", "password", "qwerty", "tatinek", "Pepicek", "Marie", "veslo", "borec", "zezlo", "smrcek"];
+    this.mediumPasswords = ["369852147", "leto2005", "Harik2323", "ZmrZliNa", "Sup3rMan", "wes1o", "Maminka123", "superHeszl0", 
+      "11dolar22", "SmRk11"];
+    this.strongPasswords = ["MamRad$k0lu", "B@lonek7", "$rd1ck0", "Kra1#123", "BE@Ttl3s", "SlUn1ck0", "St@rHv3zd@",
+      "koCk@3113", "$tud3ntZSH150", "AqVariU$56"];
 
   }
 
@@ -14,6 +16,11 @@ class RunnerGameScene extends Phaser.Scene {
   }
 
   create() {
+    // Inicializace dostupných hesel
+    this.availableWeakPasswords = [...this.weakPasswords];
+    this.availableMediumPasswords = [...this.mediumPasswords];
+    this.availableStrongPasswords = [...this.strongPasswords];
+
     // Add background first, set behind everything
     this.bg = this.add.tileSprite(0, 0, this.sys.game.config.width, this.sys.game.config.height, 'bg')
       .setOrigin(0, 0)
@@ -144,15 +151,33 @@ class RunnerGameScene extends Phaser.Scene {
     }
   }
 
+  getUniquePassword(strength) {
+    let pool;
+    if (strength === 'weak') pool = this.availableWeakPasswords;
+    else if (strength === 'medium') pool = this.availableMediumPasswords;
+    else if (strength === 'strong') pool = this.availableStrongPasswords;
+
+    if (pool.length === 0) {
+      if (strength === 'weak') this.availableWeakPasswords = [...this.weakPasswords];
+      else if (strength === 'medium') this.availableMediumPasswords = [...this.mediumPasswords];
+      else if (strength === 'strong') this.availableStrongPasswords = [...this.strongPasswords];
+      pool = this[`available${strength.charAt(0).toUpperCase() + strength.slice(1)}Passwords`];
+    }
+
+    const index = Phaser.Math.Between(0, pool.length - 1);
+    const password = pool.splice(index, 1)[0];
+    return password;
+  }
+
   spawnPasswords() {
     if (this.wordsPassed >= this.totalWords) return;
 
-    // Pick one password from each strength
-    const weak = Phaser.Utils.Array.GetRandom(this.weakPasswords);
-    const medium = Phaser.Utils.Array.GetRandom(this.mediumPasswords);
-    const strong = Phaser.Utils.Array.GetRandom(this.strongPasswords);
+    // Vyber náhodná hesla, která se nesmí opakovat
+    const weak = this.getUniquePassword('weak');
+    const medium = this.getUniquePassword('medium');
+    const strong = this.getUniquePassword('strong');
 
-    // Build and shuffle lane assignments
+    // Náhodně promícháme sady hesel
     const passwordSet = [
       { text: weak, strength: 'weak' },
       { text: medium, strength: 'medium' },
@@ -160,10 +185,10 @@ class RunnerGameScene extends Phaser.Scene {
     ];
     Phaser.Utils.Array.Shuffle(passwordSet);
 
-    // Create visual elements per lane
+    // Vytvoříme vizuální prvky pro každé heslo v jednotlivých pruzích
     for (let i = 0; i < 3; i++) {
       const { text, strength } = passwordSet[i];
-      const isCorrect = strength === 'strong';
+      const isCorrect = (strength === 'strong');
 
       const container = this.add.container(this.lanes[i], 0);
       container.setSize(160, 40);
@@ -184,6 +209,7 @@ class RunnerGameScene extends Phaser.Scene {
 
       this.passwordsGroup.add(container);
 
+      // Animace, jak heslo "padá" dolů
       this.tweens.add({
         targets: container,
         y: 600,
@@ -191,6 +217,7 @@ class RunnerGameScene extends Phaser.Scene {
         ease: 'Linear',
         onComplete: () => {
           container.destroy();
+          // Po dokončení posledního hesla zvýšíme počet prošlých slov
           if (i === 2) {
             this.wordsPassed++;
             if (this.wordsPassed >= this.totalWords) {
@@ -201,7 +228,7 @@ class RunnerGameScene extends Phaser.Scene {
       });
     }
 
-    this.collisionHandled = false;
+    this.collisionHandled = false; // reset kolize flagy
   }
 
 
