@@ -12,6 +12,10 @@ class QuizFightScene extends Phaser.Scene {
       frameWidth: 80,
       frameHeight: 110
     });
+    this.load.spritesheet('boss', 'assets/zombie_tilesheet.png', {
+      frameWidth: 80,
+      frameHeight: 110
+    });
   }
 
   drawTimerIcon() {
@@ -61,9 +65,13 @@ class QuizFightScene extends Phaser.Scene {
 
     this.player.setVisible(false);
 
-    this.opponent = this.add
-      .rectangle(650, 400, 120, 120, 0xaa0000)
-      .setStrokeStyle(4, 0xff0000);
+    this.opponent = this.add.sprite(650, 400, 'boss').setOrigin(0.5, 0.5)
+      .setFrame(0)
+      .setScale(1)
+      .setDepth(2);
+
+    this.opponent.setFlipX(true); // face right
+    this.opponent.setVisible(false);
 
     // Player and opponent labels
     this.add.text(this.player.x, this.player.y + 80, 'HRÁČ', {
@@ -242,6 +250,7 @@ class QuizFightScene extends Phaser.Scene {
   startGame() {
     console.log("Game started!");
     this.player.setVisible(true);
+    this.opponent.setVisible(true);
 
     this.shuffleQuestions();
     this.input.enabled = true;
@@ -447,10 +456,11 @@ class QuizFightScene extends Phaser.Scene {
   attackOpponent(callback) {
     let originalX = this.player.x;
     let originalFrame = this.player.frame.name; // or frame.index, usually frame.name or frame.index
-  
+
     // Change player frame to attack frame (assuming 1 is attack)
     this.player.setFrame(1);
-  
+    this.opponent.setFrame(2);
+
     // Tween player moving right by 20 pixels
     this.tweens.add({
       targets: this.player,
@@ -462,7 +472,8 @@ class QuizFightScene extends Phaser.Scene {
         // Reset player frame and position
         this.player.setFrame(originalFrame);
         this.player.x = originalX;
-  
+        this.opponent.setFrame(0);
+
         // Show attack text animation
         let attackText = this.add.text(this.opponent.x, this.opponent.y - this.opponent.height / 2 - 50, "Hráč útočí!", {
           fontSize: '20px',
@@ -471,7 +482,7 @@ class QuizFightScene extends Phaser.Scene {
           stroke: '#000',
           strokeThickness: 2
         }).setOrigin(0.5);
-  
+
         this.tweens.add({
           targets: attackText,
           y: attackText.y - 20,
@@ -486,88 +497,120 @@ class QuizFightScene extends Phaser.Scene {
       }
     });
   }
-  
+
 
   attackPlayer(callback) {
-    let attackText = this.add.text(this.player.x, this.player.y - this.player.height / 2 - 50, "Boss útočí!", {
-      fontSize: '20px',
-      fill: '#f00',
-      fontStyle: 'bold',
-      stroke: '#000',
-      strokeThickness: 2
-    }).setOrigin(0.5);
+    let originalX = this.opponent.x;
+    let originalFrame = this.opponent.frame.name;
 
+    // Change player frame to attack frame (e.g. frame 1)
+    this.opponent.setFrame(1);
+    this.player.setFrame(2);
+
+    // Tween player moving right by 20 pixels
     this.tweens.add({
-      targets: attackText,
-      y: attackText.y - 20,
-      alpha: { from: 1, to: 0 },
-      duration: 1000,
+      targets: this.opponent,
+      x: originalX - 20,
+      duration: 300,
+      yoyo: true,
       ease: 'Power1',
       onComplete: () => {
-        attackText.destroy();
-        callback();
+        // Reset player frame and position
+        this.opponent.setFrame(originalFrame);
+        this.opponent.x = originalX;
+        this.player.setFrame(0);
+
+        // Show attack text animation
+        let attackText = this.add.text(this.player.x, this.player.y - this.player.height / 2 - 50, "Boss útočí!", {
+          fontSize: '20px',
+          fill: '#f00',
+          fontStyle: 'bold',
+          stroke: '#000',
+          strokeThickness: 2
+        }).setOrigin(0.5);
+
+        this.tweens.add({
+          targets: attackText,
+          y: attackText.y - 20,
+          alpha: { from: 1, to: 0 },
+          duration: 1000,
+          ease: 'Power1',
+          onComplete: () => {
+            attackText.destroy();
+            if (callback) callback();
+          }
+        });
       }
     });
   }
 
-  checkGameStatus() {
-    if (this.playerHealth <= 0) {
-      this.endGame(false);
-    } else if (this.opponentHealth <= 0) {
-      this.endGame(true);
-    } else {
-      this.currentQuestionIndex++;
-      this.input.enabled = true;
-      this.resetOptionStyles();
-      this.showQuestion();
+    checkGameStatus() {
+      if (this.playerHealth <= 0) {
+        this.endGame(false);
+      } else if (this.opponentHealth <= 0) {
+        this.endGame(true);
+      } else {
+        this.currentQuestionIndex++;
+        this.input.enabled = true;
+        this.resetOptionStyles();
+        this.showQuestion();
+      }
+    }
+
+    endGame(playerWon) {
+      this.input.enabled = false;
+      this.timerText.setText('');
+      this.questionText && this.questionText.destroy();
+      this.options.forEach(opt => opt && opt.destroy());
+      this.timerIcon.destroy();
+
+      if (playerWon) {
+        //When player wins:
+        this.player.setFrame(8);
+        this.opponent.setFrame(4);
+      } else {
+        // When player loses:
+        this.player.setFrame(4);
+        this.opponent.setFrame(8);
+      }
+      let endText = playerWon ? "Vyhrál jsi! Získal jsi 3 body." : "Prohrál jsi, nezískáváš žádný bod!";
+      let color = playerWon ? '#00ff00' : '#ff0000';
+
+      let message = this.add.text(400, 200, endText, {
+        fontSize: '36px',
+        fill: color,
+        fontStyle: 'bold',
+        stroke: '#000',
+        strokeThickness: 4
+      }).setOrigin(0.5);
+
+      // Add restart button
+      let restartButton = this.add.text(400, 380, "Restartovat", {
+        fontSize: '28px',
+        fill: '#fff',
+        backgroundColor: '#4444aa',
+        padding: { x: 20, y: 10 },
+        fontStyle: 'bold',
+        stroke: '#222266',
+        strokeThickness: 3,
+        borderRadius: 8,
+      }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+      restartButton.on('pointerdown', () => {
+        message.destroy();
+        restartButton.destroy();
+        this.startGame();
+      });
     }
   }
 
-  endGame(playerWon) {
-    this.input.enabled = false;
-    this.timerText.setText('');
-    this.questionText && this.questionText.destroy();
-    this.options.forEach(opt => opt && opt.destroy());
-    this.timerIcon.destroy();
-
-    let endText = playerWon ? "Vyhrál jsi! Získal jsi 3 body." : "Prohrál jsi, nezískáváš žádný bod!";
-    let color = playerWon ? '#00ff00' : '#ff0000';
-
-    let message = this.add.text(400, 200, endText, {
-      fontSize: '36px',
-      fill: color,
-      fontStyle: 'bold',
-      stroke: '#000',
-      strokeThickness: 4
-    }).setOrigin(0.5);
-
-    // Add restart button
-    let restartButton = this.add.text(400, 380, "Restartovat", {
-      fontSize: '28px',
-      fill: '#fff',
-      backgroundColor: '#4444aa',
-      padding: { x: 20, y: 10 },
-      fontStyle: 'bold',
-      stroke: '#222266',
-      strokeThickness: 3,
-      borderRadius: 8,
-    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
-
-    restartButton.on('pointerdown', () => {
-      message.destroy();
-      restartButton.destroy();
-      this.startGame();
-    });
-  }
-}
-
 
 const config = {
-  type: Phaser.AUTO,
-  width: 800,
-  height: 600,
-  backgroundColor: '#1a1a2e',
-  scene: [QuizFightScene]
-};
+    type: Phaser.AUTO,
+    width: 800,
+    height: 600,
+    backgroundColor: '#1a1a2e',
+    scene: [QuizFightScene]
+  };
 
-const game = new Phaser.Game(config);
+  const game = new Phaser.Game(config);
