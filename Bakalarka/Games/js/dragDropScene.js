@@ -249,14 +249,14 @@ class CybersecurityScene extends Phaser.Scene {
     }
 
     const sceneWidth = this.sys.game.config.width;
-    if (!this.feedbackText) {
+    /*if (!this.feedbackText) {
       this.feedbackText = this.add.text(sceneWidth / 2, 600 - 40, '', {
         fontSize: '20px', color: '#eee', fontStyle: 'bold', backgroundColor: 'rgba(0, 0, 0, 0.5)',
         padding: { x: 15, y: 10 }, wordWrap: { width: sceneWidth - 100 }, align: 'center', stroke: '#000', strokeThickness: 2,
       }).setOrigin(0.5);
     } else {
       this.feedbackText.setText('');
-    }
+    }*/
   }
 
   returnToOriginal(action) {
