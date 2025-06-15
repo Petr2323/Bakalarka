@@ -105,16 +105,48 @@ class CybersecurityScene extends Phaser.Scene {
 
   showStartMenu() {
     this.overlay = this.add.rectangle(550, 300, 1100, 600, 0x000000, 0.7);
-    const instructions = "Vítejte ve hře!\n\nDrag akce na správná čísla ve správném pořadí.\n\nKlikněte na 'Začít hru' pro začátek.";
-
+  
+    const instructions = "Vítejte ve hře Sestav správné řešení!\n\nPřetáhni akce na správná čísla ve správném pořadí. \n\nPři kliknutí na přetaženou akci se akce vrátí zpátky na začátek";
+  
     this.guideText = this.add.text(550, 250, instructions, {
-      fontSize: '24px', fill: '#ffffff', align: 'center', wordWrap: { width: 1000 }
+      fontSize: '26px',
+      fontFamily: 'Arial',
+      color: '#f5f5f5',
+      backgroundColor: 'rgba(40, 40, 60, 0.9)',
+      padding: { x: 30, y: 20 },
+      align: 'center',
+      wordWrap: { width: 800 },
+      stroke: '#222244',
+      strokeThickness: 3,
+      shadow: {
+        offsetX: 2,
+        offsetY: 2,
+        color: '#000000',
+        blur: 4,
+        fill: true
+      },
+      borderRadius: 15
     }).setOrigin(0.5);
-
+  
     this.startButton = this.add.text(550, 400, 'Začít hru', {
-      fontSize: '28px', fill: '#fff', backgroundColor: '#0066ff', padding: { x: 20, y: 10 }, borderRadius: 10,
+      fontSize: '32px',
+      fontFamily: 'Arial',
+      backgroundColor: '#1a73e8',
+      color: '#ffffff',
+      padding: { x: 30, y: 15 },
+      borderRadius: 20,
+      fontStyle: 'bold',
+      stroke: '#0c47a1',
+      strokeThickness: 4,
+      shadow: {
+        offsetX: 2,
+        offsetY: 2,
+        color: '#063a7c',
+        blur: 3,
+        fill: true
+      }
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
-
+  
     this.startButton.on('pointerdown', () => {
       this.overlay.destroy();
       this.guideText.destroy();
@@ -122,6 +154,7 @@ class CybersecurityScene extends Phaser.Scene {
       this.initGame();
     });
   }
+  
 
   initGame() {
     this.submitted = false;
@@ -284,8 +317,8 @@ class CybersecurityScene extends Phaser.Scene {
     if (incomplete) {
       message = "⛔ Vyplň všechny odpovědi!";
     } else if (isCorrect) {
-      message = "✅ Skvělé! Všechno je správně!";
-      this.score += 1;
+      message = "✅ Skvělé! Všechno je správně! Získáváš 2 body.";
+      this.score = 2;
       this.scoreText.setText(`Score: ${this.score}`);
     } else {
       message = "❌ Některé odpovědi nejsou ve správném pořadí.";
