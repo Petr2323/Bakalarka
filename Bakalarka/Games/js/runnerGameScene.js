@@ -2,7 +2,7 @@ class RunnerGameScene extends Phaser.Scene {
   constructor() {
     super({ key: 'RunnerGameScene' });
     this.weakPasswords = ["123456", "password", "qwerty", "tatinek", "Pepicek", "Marie", "veslo", "borec", "zezlo", "smrcek"];
-    this.mediumPasswords = ["369852147", "leto2005", "Harik2323", "ZmrZliNa", "Sup3rMan", "wes1o", "Maminka123", "superHeszl0", 
+    this.mediumPasswords = ["369852147", "leto2005", "Harik2323", "ZmrZliNa", "Sup3rMan", "wes1o", "Maminka123", "superHeszl0",
       "11dolar22", "SmRk11"];
     this.strongPasswords = ["MamRad$k0lu", "B@lonek7", "$rd1ck0", "Kra1#123", "BE@Ttl3s", "SlUn1ck0", "St@rHv3zd@",
       "koCk@3113", "$tud3ntZSH150", "AqVariU$56"];
@@ -10,7 +10,15 @@ class RunnerGameScene extends Phaser.Scene {
   }
 
   preload() {
-    this.load.image('player', 'assets/player.png');
+    this.load.spritesheet('playerM', 'assets/player_tilesheet.png', {
+      frameWidth: 72,
+      frameHeight: 120
+    });
+    this.load.spritesheet('playerF', 'assets/female_tilesheet.png', {
+      frameWidth: 72,
+      frameHeight: 120
+    });
+
     this.load.image('bg', 'assets/runnerBG.jpeg'); // Or .png
 
   }
@@ -33,11 +41,6 @@ class RunnerGameScene extends Phaser.Scene {
     this.wordsPassed = 0;
     this.gameStarted = false;
     this.collisionHandled = false;
-
-    // Player sprite, hidden initially
-    this.player = this.add.sprite(this.lanes[this.currentLane], 500, 'player')
-      .setVisible(false)
-      .setDepth(2); // above background and UI
 
     // Score background rectangle
     this.scoreBackground = this.add.rectangle(85, 22, 160, 36, 0x000000, 0.6)
@@ -63,7 +66,7 @@ class RunnerGameScene extends Phaser.Scene {
     const centerX = this.cameras.main.centerX;
     const centerY = this.cameras.main.centerY;
 
-    this.instructionBackground = this.add.rectangle(centerX, centerY, 600, 420, 0x000000, 0.85)
+    this.instructionBackground = this.add.rectangle(centerX, centerY, 600, 480, 0x000000, 0.85)
       .setStrokeStyle(3, 0xffffff)
       .setOrigin(0.5)
       .setDepth(1);
@@ -75,12 +78,11 @@ class RunnerGameScene extends Phaser.Scene {
       "• Správné slovo zezelená, špatné zčervená.",
       "• Pokud trefíte špatné slovo, správné zmodrá.",
       "• Celkem proběhne 6 slov, hra trvá asi 1 minutu.",
-      "",
-      "👇 Klikněte na tlačítko pro spuštění hry:"
+      ""
     ];
 
     this.instructionTexts = instructions.map((line, i) => {
-      return this.add.text(centerX, centerY - 160 + i * 32, line, {
+      return this.add.text(centerX, centerY - 190 + i * 28, line, {
         fontSize: '20px',
         fill: '#ffffff',
         align: 'center',
@@ -88,6 +90,28 @@ class RunnerGameScene extends Phaser.Scene {
       }).setOrigin(0.5).setDepth(1);
     });
 
+    // Character selection
+    const characters = ['playerM', 'playerF'];
+    this.selectedPlayer = 'playerM'; // default
+
+    this.characterSprites = characters.map((key, i) => {
+      const sprite = this.add.sprite(centerX - 60 + i * 120, centerY + 30, key)
+        .setInteractive()
+        .setScale(0.75)
+        .setDepth(1)
+        .setData('key', key);
+
+      sprite.on('pointerdown', () => {
+        this.selectedPlayer = key;
+        this.characterSprites.forEach(s => s.setTint(0xffffff));
+        sprite.setTint(0x00ff00); // highlight selected
+      });
+
+      if (i === 0) sprite.setTint(0x00ff00); // default selected
+      return sprite;
+    });
+
+    // Start Button
     this.startButton = this.add.text(centerX, centerY + 150, "▶ Start Game", {
       fontSize: '28px',
       backgroundColor: '#007700',
@@ -103,13 +127,23 @@ class RunnerGameScene extends Phaser.Scene {
   }
 
 
-
-
   startGame() {
     // Remove instruction elements
     this.instructionTexts.forEach(t => t.destroy());
     this.startButton.destroy();
     this.instructionBackground.destroy();
+    this.characterSprites.forEach(s => s.destroy());
+
+    // Create player sprite here with selectedPlayer
+    this.player = this.add.sprite(this.lanes[this.currentLane], 460, this.selectedPlayer)
+      .setScale(0.75)
+      .setDepth(2);
+
+
+    // Show player and score
+    this.player.setVisible(true);
+    this.scoreText.setVisible(true);
+    this.scoreBackground.setVisible(true);
 
     // Show player and score
     this.player.setVisible(true);
@@ -268,16 +302,16 @@ class RunnerGameScene extends Phaser.Scene {
   endGame() {
     if (!this.gameStarted) return;
     this.gameStarted = false;
-  
+
     if (this.spawnTimer) {
       this.spawnTimer.remove();
     }
     this.passwordsGroup.clear(true, true);
-  
+
     this.input.keyboard.removeAllListeners();
-  
+
     this.player.setVisible(false);
-  
+
     // Calculate final scaled score
     let finalPoints;
     if (this.score >= 5) {
@@ -289,13 +323,13 @@ class RunnerGameScene extends Phaser.Scene {
     } else {
       finalPoints = 0;
     }
-  
+
     const endMessage = `🎉 Konec hry!\nTvé herní skóre: ${this.score}/${this.totalWords}.\nZískané body: ${finalPoints}/3.`;
-  
+
     this.endBackground = this.add.rectangle(300, 280, 480, 140, 0x000000, 0.7)
       .setOrigin(0.5)
       .setDepth(1);
-  
+
     this.add.text(300, 280, endMessage, {
       fontSize: '24px',
       fill: '#ffffff',
@@ -303,7 +337,7 @@ class RunnerGameScene extends Phaser.Scene {
       wordWrap: { width: 460 }
     }).setOrigin(0.5).setDepth(2);
   }
-  
+
 }
 
 const config = {
