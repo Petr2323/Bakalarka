@@ -29,6 +29,10 @@ class RunnerGameScene extends Phaser.Scene {
     this.availableMediumPasswords = [...this.mediumPasswords];
     this.availableStrongPasswords = [...this.strongPasswords];
 
+    this.passwordsFrozenUntil = 0;
+    this.originalFrame = 1; // 1 is the default player frame
+    this.wrongFrame = 4;    // 2 is a "wrong" frame — change as needed
+
     // Add background first, set behind everything
     this.bg = this.add.tileSprite(0, 0, this.sys.game.config.width, this.sys.game.config.height, 'bg')
       .setOrigin(0, 0)
@@ -178,21 +182,18 @@ class RunnerGameScene extends Phaser.Scene {
   }
 
   switchLane(dir) {
-    if (!this.gameStarted) return;
-
+    if (!this.gameStarted || this.isFrozen) return; // 🚫 prevent movement if frozen
+  
     let newLane = this.currentLane + dir;
     if (newLane >= 0 && newLane < this.lanes.length) {
       this.currentLane = newLane;
       this.player.x = this.lanes[this.currentLane];
-
+  
       // Flip character based on direction
-      if (dir < 0) {
-        this.player.setFlipX(true); // face left
-      } else {
-        this.player.setFlipX(false); // face right
-      }
+      this.player.setFlipX(dir < 0);
     }
   }
+  
 
   getUniquePassword(strength) {
     let pool;
@@ -214,53 +215,52 @@ class RunnerGameScene extends Phaser.Scene {
 
   spawnPasswords() {
     if (this.wordsPassed >= this.totalWords) return;
-
+  
     // Vyber náhodná hesla, která se nesmí opakovat
     const weak = this.getUniquePassword('weak');
     const medium = this.getUniquePassword('medium');
     const strong = this.getUniquePassword('strong');
-
-    // Náhodně promícháme sady hesel
+  
     const passwordSet = [
       { text: weak, strength: 'weak' },
       { text: medium, strength: 'medium' },
       { text: strong, strength: 'strong' }
     ];
     Phaser.Utils.Array.Shuffle(passwordSet);
-
-    // Vytvoříme vizuální prvky pro každé heslo v jednotlivých pruzích
+  
+    this.activeTweens = []; // 🟩 Store tweens for pausing/resuming
+  
     for (let i = 0; i < 3; i++) {
       const { text, strength } = passwordSet[i];
       const isCorrect = (strength === 'strong');
-
+  
       const container = this.add.container(this.lanes[i], 0);
       container.setSize(160, 40);
-
+  
       const rect = this.add.rectangle(0, 0, 160, 40, 0x222222)
         .setStrokeStyle(3, 0xffffff)
         .setOrigin(0.5);
-
+  
       const label = this.add.text(0, 0, text, {
         fontSize: '18px',
         color: '#fff',
         align: 'center',
         wordWrap: { width: 150 }
       }).setOrigin(0.5);
-
+  
       container.add([rect, label]);
       container.isCorrect = isCorrect;
-
+  
       this.passwordsGroup.add(container);
-
-      // Animace, jak heslo "padá" dolů
-      this.tweens.add({
+  
+      // 🟩 Tween for falling animation
+      const tween = this.tweens.add({
         targets: container,
         y: 600,
         duration: 8000,
         ease: 'Linear',
         onComplete: () => {
           container.destroy();
-          // Po dokončení posledního hesla zvýšíme počet prošlých slov
           if (i === 2) {
             this.wordsPassed++;
             if (this.wordsPassed >= this.totalWords) {
@@ -269,44 +269,71 @@ class RunnerGameScene extends Phaser.Scene {
           }
         }
       });
+  
+      this.activeTweens.push(tween); // 🟩 Store tween reference
     }
-
+  
     this.collisionHandled = false; // reset kolize flagy
   }
+  
 
+  freezeOnWrongAnswer() {
+    this.isFrozen = true;
+    this.player.setFrame(this.wrongFrame);
+  
+    // ✅ Pause falling tweens
+    this.activeTweens.forEach(tween => tween.pause());
+  
+    this.time.delayedCall(2000, () => {
+      this.isFrozen = false;
+      this.player.setFrame(this.originalFrame);
+  
+      // ✅ Resume falling tweens
+      this.activeTweens.forEach(tween => tween.resume());
+  
+      // ❗ Disable password interactions for 4 more seconds
+      this.passwordsFrozenUntil = this.time.now + 4000;
+    });
+  }
+  
+  
 
   update() {
     if (this.gameStarted) {
-      this.bg.tilePositionY -= 0.5; // Scroll down slowly
+      this.bg.tilePositionY -= 0.5;
     }
 
-    if (!this.collisionHandled) {
-      this.passwordsGroup.getChildren().forEach(word => {
-        if (!word.hit && Phaser.Geom.Intersects.RectangleToRectangle(
-          this.player.getBounds(), word.getBounds()
-        )) {
-          word.hit = true;
-          this.collisionHandled = true;
+    if (this.gameStarted && !this.isFrozen && this.time.now > this.passwordsFrozenUntil) {
+      if (!this.collisionHandled) {
+        this.passwordsGroup.getChildren().forEach(word => {
+          if (!word.hit && Phaser.Geom.Intersects.RectangleToRectangle(
+            this.player.getBounds(), word.getBounds()
+          )) {
+            word.hit = true;
+            this.collisionHandled = true;
 
-          if (word.isCorrect) {
-            this.score++;
-            word.list[0].setStrokeStyle(3, 0x00ff00); // green
-          } else {
-            word.list[0].setStrokeStyle(3, 0xff0000); // red
-          }
-
-          // Highlight correct word (blue) if not hit
-          this.passwordsGroup.getChildren().forEach(w => {
-            if (w.isCorrect && !w.hit) {
-              w.list[0].setStrokeStyle(3, 0x0000ff); // blue
+            if (word.isCorrect) {
+              this.score++;
+              word.list[0].setStrokeStyle(3, 0x00ff00); // green
+            } else {
+              word.list[0].setStrokeStyle(3, 0xff0000); // red
+              this.freezeOnWrongAnswer(); // <-- freeze when incorrect
             }
-          });
 
-          this.scoreText.setText(`Skóre: ${this.score}`);
-        }
-      });
+            // Highlight correct word (blue) if not hit
+            this.passwordsGroup.getChildren().forEach(w => {
+              if (w.isCorrect && !w.hit) {
+                w.list[0].setStrokeStyle(3, 0x0000ff); // blue
+              }
+            });
+
+            this.scoreText.setText(`Skóre: ${this.score}`);
+          }
+        });
+      }
     }
   }
+
 
   endGame() {
     if (!this.gameStarted) return;
