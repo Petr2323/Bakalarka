@@ -11,12 +11,12 @@ class RunnerGameScene extends Phaser.Scene {
 
   preload() {
     this.load.spritesheet('playerM', 'assets/player_tilesheet.png', {
-      frameWidth: 72,
-      frameHeight: 120
+      frameWidth: 80,
+      frameHeight: 110
     });
     this.load.spritesheet('playerF', 'assets/female_tilesheet.png', {
-      frameWidth: 72,
-      frameHeight: 120
+      frameWidth: 80,
+      frameHeight: 110
     });
 
     this.load.image('bg', 'assets/runnerBG.jpeg'); // Or .png
@@ -136,7 +136,8 @@ class RunnerGameScene extends Phaser.Scene {
 
     // Create player sprite here with selectedPlayer
     this.player = this.add.sprite(this.lanes[this.currentLane], 460, this.selectedPlayer)
-      .setScale(0.75)
+      .setFrame(1)
+      .setScale(1)
       .setDepth(2);
 
 
@@ -178,10 +179,18 @@ class RunnerGameScene extends Phaser.Scene {
 
   switchLane(dir) {
     if (!this.gameStarted) return;
+
     let newLane = this.currentLane + dir;
     if (newLane >= 0 && newLane < this.lanes.length) {
       this.currentLane = newLane;
       this.player.x = this.lanes[this.currentLane];
+
+      // Flip character based on direction
+      if (dir < 0) {
+        this.player.setFlipX(true); // face left
+      } else {
+        this.player.setFlipX(false); // face right
+      }
     }
   }
 
