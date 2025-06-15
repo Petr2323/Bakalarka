@@ -4,19 +4,26 @@ class QuizFightScene extends Phaser.Scene {
   }
 
   preload() {
-    // No assets needed
+    this.load.spritesheet('playerM', 'assets/player_tilesheet.png', {
+      frameWidth: 80,
+      frameHeight: 110
+    });
+    this.load.spritesheet('playerF', 'assets/female_tilesheet.png', {
+      frameWidth: 80,
+      frameHeight: 110
+    });
   }
 
   drawTimerIcon() {
     const g = this.timerIcon;
     g.clear();
-  
+
     // Draw circle for clock face
     g.lineStyle(3, 0xffff00);
     g.fillStyle(0x333300, 1);
     g.fillCircle(25, 25, 20);
     g.strokeCircle(25, 25, 20);
-  
+
     // Draw clock hands
     g.lineStyle(3, 0xffff00);
     // Hour hand (pointing at 12)
@@ -24,14 +31,14 @@ class QuizFightScene extends Phaser.Scene {
     g.moveTo(25, 25);
     g.lineTo(25, 12);
     g.strokePath();
-  
+
     // Minute hand (pointing at 3)
     g.beginPath();
     g.moveTo(25, 25);
     g.lineTo(38, 25);
     g.strokePath();
   }
-  
+
 
   create() {
     // Initialize game state but DON'T start the game yet
@@ -47,9 +54,13 @@ class QuizFightScene extends Phaser.Scene {
     this.add.rectangle(400, 300, 780, 580, 0x111122).setStrokeStyle(3, 0x6666aa, 1);
 
     // Player and opponent rectangles (stylish with stroke)
-    this.player = this.add
-      .rectangle(150, 400, 120, 120, 0x00aa00)
-      .setStrokeStyle(4, 0x00ff00);
+    this.player = this.add.sprite(150, 400, 'playerM').setOrigin(0.5, 0.5)
+      .setFrame(0)
+      .setScale(1)
+      .setDepth(2);
+
+    this.player.setVisible(false);
+
     this.opponent = this.add
       .rectangle(650, 400, 120, 120, 0xaa0000)
       .setStrokeStyle(4, 0xff0000);
@@ -68,18 +79,18 @@ class QuizFightScene extends Phaser.Scene {
 
     this.updateHealthBars();
 
-   // Timer icon positioned left
-  this.timerIcon = this.add.graphics({ x: 350, y: 340 });
-  this.drawTimerIcon();
+    // Timer icon positioned left
+    this.timerIcon = this.add.graphics({ x: 350, y: 340 });
+    this.drawTimerIcon();
 
-  // Timer numeric text right next to icon, aligned vertically center
-  this.timerText = this.add.text(400, 365, '15', {
-    fontSize: '28px',
-    fill: '#ffff66',
-    fontStyle: 'bold',
-    stroke: '#333300',
-    strokeThickness: 3,
-  }).setOrigin(0, 0.5);
+    // Timer numeric text right next to icon, aligned vertically center
+    this.timerText = this.add.text(400, 365, '15', {
+      fontSize: '28px',
+      fill: '#ffff66',
+      fontStyle: 'bold',
+      stroke: '#333300',
+      strokeThickness: 3,
+    }).setOrigin(0, 0.5);
 
     // Question bank (unchanged)
     // Question bank
@@ -230,6 +241,8 @@ class QuizFightScene extends Phaser.Scene {
 
   startGame() {
     console.log("Game started!");
+    this.player.setVisible(true);
+
     this.shuffleQuestions();
     this.input.enabled = true;
     this.currentQuestionIndex = 0;
@@ -432,26 +445,48 @@ class QuizFightScene extends Phaser.Scene {
   }
 
   attackOpponent(callback) {
-    let attackText = this.add.text(this.opponent.x, this.opponent.y - this.opponent.height / 2 - 50, "Hráč útočí!", {
-      fontSize: '20px',
-      fill: '#0f0',
-      fontStyle: 'bold',
-      stroke: '#000',
-      strokeThickness: 2
-    }).setOrigin(0.5);
-
+    let originalX = this.player.x;
+    let originalFrame = this.player.frame.name; // or frame.index, usually frame.name or frame.index
+  
+    // Change player frame to attack frame (assuming 1 is attack)
+    this.player.setFrame(1);
+  
+    // Tween player moving right by 20 pixels
     this.tweens.add({
-      targets: attackText,
-      y: attackText.y - 20,
-      alpha: { from: 1, to: 0 },
-      duration: 1000,
+      targets: this.player,
+      x: originalX + 20,
+      duration: 300,
+      yoyo: true,
       ease: 'Power1',
       onComplete: () => {
-        attackText.destroy();
-        callback();
+        // Reset player frame and position
+        this.player.setFrame(originalFrame);
+        this.player.x = originalX;
+  
+        // Show attack text animation
+        let attackText = this.add.text(this.opponent.x, this.opponent.y - this.opponent.height / 2 - 50, "Hráč útočí!", {
+          fontSize: '20px',
+          fill: '#0f0',
+          fontStyle: 'bold',
+          stroke: '#000',
+          strokeThickness: 2
+        }).setOrigin(0.5);
+  
+        this.tweens.add({
+          targets: attackText,
+          y: attackText.y - 20,
+          alpha: { from: 1, to: 0 },
+          duration: 1000,
+          ease: 'Power1',
+          onComplete: () => {
+            attackText.destroy();
+            callback();
+          }
+        });
       }
     });
   }
+  
 
   attackPlayer(callback) {
     let attackText = this.add.text(this.player.x, this.player.y - this.player.height / 2 - 50, "Boss útočí!", {
