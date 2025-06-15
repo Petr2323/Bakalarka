@@ -65,90 +65,231 @@ class ChatScene extends Phaser.Scene {
         this.scrollButtons.add(downBtn);
 
 
-        // Expanded dialogue tree with emojis
-        this.dialogueTree = {
-            start: {
-                friend: "Hey! 👋 How's your day going?",
-                responses: [
-                    { text: "Pretty good, thanks! 😊", next: "friend_good" },
-                    { text: "Not great, honestly 😞", next: "friend_bad" }
-                ]
+        const allTrees = {
+            phishing_tree: {
+                start: {
+                    friend: "Ahoj! Právě mi přišel e-mail od 'Školní IT podpory', že si mám změnit heslo. Klikl/a bys na ten odkaz?",
+                    responses: [
+                        { text: "Ne, je to divný 🧐", next: "tree1_correct1", points: 1 },
+                        { text: "Jo, zní to důležitě, kliknul bych na něj. 👀", next: "tree1_wrong1" }
+                    ]
+                },
+                tree1_correct1: {
+                    friend: "Brácha mi říká, že by na to kliknul 😅",
+                    responses: [
+                        { text: "Neposlouchej ho, zkontroluj si ten e-mail, jestli je fakt školní, měl by být na stránkách školy. 😞", next: "tree1_correct2", points: 1 },
+                        { text: "Když to říká, tak to zkus 🤔", next: "tree1_endBad" }
+                    ]
+                },
+                tree1_correct2: {
+                    friend: "Dobře! Vypadá to podezřele. Radši to nebudu otevírat. 📛",
+                    responses: [
+                        { text: "Jo, vždycky lepší se zeptat, já se vyznám ✅", next: "tree1_end", points: 1 },
+                        { text: "Tak ať to otevře brácha, bude to na něj 😈", next: "tree1_endBad" }
+                    ]
+                },
+                tree1_wrong1: {
+                    friend: "O ou... počkej! Možná to byl falešný e-mail! 😰",
+                    responses: [
+                        { text: "Sakra, tak poučení pro příště 😓", next: "tree1_end", points: 1 },
+                        { text: "To bude v pohodě, co se může stát? 😅", next: "tree1_endBad" }
+                    ]
+                },
+                tree1_end: {
+                    friend: "Díky za pomoc, my champ 🏅",
+                    responses: [],
+                    end: true
+                },
+                tree1_endBad: {
+                    friend: "Teď už mají moje heslo, nedostanu se na účet. Psal jsem IT učiteli, prý mi zítra účet resetují 😟",
+                    responses: [],
+                    end: true
+                }
             },
-            friend_good: {
-                friend: "Glad to hear! 🎉 Want to catch a movie this weekend? 🍿",
-                responses: [
-                    { text: "Sounds awesome! 👍", next: "movie_yes", points: 1 },
-                    { text: "Can't, got work 😔", next: "movie_no" }
-                ]
+
+            youtube_safe_tree: {
+                start: {
+                    friend: "Kámo, koukni na tohle video! 📺 https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                    responses: [
+                        { text: "Ok, podívám se 🎬", next: "tree2_correct1", points: 1 },
+                        { text: "Nevím, radši nekliku na odkazy. 😬", next: "tree2_safe" }
+                    ]
+                },
+                tree2_correct1: {
+                    friend: "Vím že je to starý, ale pořád dobrý 😂",
+                    responses: [
+                        { text: "Dostal si mě 🤣", next: "tree2_end", points: 1 },
+                        { text: "Máš ještě nějaký vtípek? 🤣", next: "tree2_end", points: 1 }
+                    ]
+                },
+                tree2_safe: {
+                    friend: "No tak, podívej se, věř mi, tohle je fakt jen sranda. 😄",
+                    responses: [
+                        { text: "Tak jo, kliknu teda. 🎬", next: "tree2_end", points: 1 },
+                        { text: "I tak nechci riskovat. 🙅", next: "tree2_endBad" }
+                    ]
+                },
+                tree2_end: {
+                    friend: "Rickroll, dostals mě 😊",
+                    responses: [],
+                    end: true
+                },
+                tree2_endBad: {
+                    friend: "Tak už ti nic nepošlu. Uvidíme se zítra 😬",
+                    responses: [],
+                    end: true
+                }
             },
-            friend_bad: {
-                friend: "Oh no! 😟 Want to talk about it?",
-                responses: [
-                    { text: "Sure, thanks for asking 💙", next: "talk_yes" },
-                    { text: "Not really, maybe later.", next: "talk_no" }
-                ]
+
+            personal_info_tree: {
+                start: {
+                    friend: "Hele, do jedný hry chtějí, abych zadal svoje celé jméno, adresu a telefon. Mám to tam dát?",
+                    responses: [
+                        { text: "Ne! To bych nikdy neudělal/a!", next: "tree3_correct1", points: 1 },
+                        { text: "Asi jo, když to chtějí... 🤷", next: "tree3_wrong1" }
+                    ]
+                },
+                tree3_correct1: {
+                    friend: "Přesně! To není bezpečné. 👏",
+                    responses: [
+                        { text: "Vždy chránit osobní údaje. 🔐", next: "tree3_end", points: 1 },
+                        { text: "*zadám si svoje údaje, získám si odměnu sám.", next: "tree3_badSolo" }
+                    ]
+                },
+                tree3_wrong1: {
+                    friend: "Hmm, to asi nebylo nejlepší rozhodnutí. 😕",
+                    responses: [
+                        { text: "Máš pravdu, příště si dám pozor. 😞", next: "tree3_end", points: 1 },
+                        { text: "To je jedno, co s tím můžou dělat? 🤔", next: "tree3_wrong2" }
+                    ]
+                },
+                tree3_wrong2: {
+                    friend: "Přišla mi SMS, že jsem si objednal balík a že ho mám vyzvednout, přijede mi na mojí adresu, ale já si nic neobjednával 🤔",
+                    responses: [
+                        { text: "Vyzvedni ho, třeba to budou body navíc do herního obchodu 👏", next: "tree3_endBad" },
+                        { text: "Napiš na podporu hry, hlavně nic nevyzvedávej 🚨", next: "tree3_end", points: 1 }
+                    ],
+                    
+                },
+                tree3_end: {
+                    friend: "Díky, už jsem klidnější 👏",
+                    responses: [],
+                    end: true
+                },
+                tree3_endBad: {
+                    friend: "Nebylo to zdarma, zaplatil jsem při převzetí 200Kč, v krabici byla gumová kachnička😭",
+                    responses: [],
+                    end: true
+                },
+                tree3_badSolo: {
+                    friend: "SMS: přišel Vám balík s herními předměty, vysvedněte si ho v Alzabox.",
+                    responses: [
+                        { text: "*jít vyzvednout balík, zaplatit dobírku 200Kč 👏", next: "tree3_endBadSolo" },
+                        { text: "*napiš na podporu hry, hlavně nic nevyzvedávej 🚨", next:"tree3_endSolo",points: 1 }
+                    ],
+                },
+                tree3_endSolo: {
+                    friend: "*vyhnul/a jsem se podvodu😌",
+                    responses: [],
+                    end: true
+                },
+                tree3_endBadSolo: {
+                    friend: "*v balíku byla jen gumová kachnička, naletěl jsem 😬",
+                    responses: [],
+                    end: true
+                }
             },
-            movie_yes: {
-                friend: "Great! I'll book the tickets 🎟️. Which movie do you prefer?",
-                responses: [
-                    { text: "Action 🎬", next: "action_movie" },
-                    { text: "Comedy 😂", next: "comedy_movie" }
-                ]
+
+            fake_account_tree: {
+                start: {
+                    friend: "Někdo mi napsal přes Instagram a tvrdí, že je školní admin. Požádal mě o mé přihlášení do školního systému. Mám mu věřit?",
+                    responses: [
+                        { text: "To zní divný, napiš na školní podporu nebo učiteli IT. 🚨", next: "tree4_correct1", points: 1 },
+                        { text: "Možná, zní to důvěryhodně. 🤨", next: "tree4_wrong1" }
+                    ]
+                },
+                tree4_correct1: {
+                    friend: "Prý je to urgentní, mohl se mi tam prý někdo nabourat. 😳",
+                    responses: [
+                        { text: "Je to vážný, dej mu rychle své údaje 😬", next: "tree4_wrong1"},
+                        { text: "Ignoruj ho, napiš e-mail IT učiteli.", next: "tree4_correct2", points: 1 }
+                    ]
+                },
+                tree4_correct2: {
+                    friend: "Díky! Ukázalo se, že ten účet byl falešný! 😳",
+                    responses: [
+                        { text: "Hlavně, že se to vyřešilo🙌", next: "tree4_end", points: 1 }
+                    ]
+                },
+                tree4_wrong1: {
+                    friend: "Tak jsem mu je poslal, prý mi tam 'opraví' známky za to, že jsem mu pomohl 🤩",
+                    responses: [
+                        { text: "Hele, to je hodně divný, rychle si změň heslo a napiš do školy 😓", next: "tree4_end", points: 1 },
+                        { text: "Super, kéž by mi taky 'opravil' známky 😊", next: "tree4_endBad" }
+                    ]
+                },
+                tree4_end: {
+                    friend: "Díky za pomoc, nevědel jsem, co dělat. Jsi nej 👏",
+                    responses: [],
+                    end: true
+                },
+                tree4_endBad: {
+                    friend: "Chtěl jsem se před chvilkou přihlásit na školní účet, prý mám špatné heslo. Zítra zajdu za učitelem IT 😬",
+                    responses: [],
+                    end: true
+                }
             },
-            movie_no: {
-                friend: "No worries! Maybe next time 🙌",
-                responses: [],
-                end: true
-            },
-            talk_yes: {
-                friend: "I'm here for you. What's bothering you? 💬",
-                responses: [
-                    { text: "Just stressed about work 🥵", next: "stress_work" },
-                    { text: "Personal stuff 😕", next: "stress_personal" }
-                ]
-            },
-            talk_no: {
-                friend: "Alright, anytime you want to chat, I'm here 😊",
-                responses: [],
-                end: true
-            },
-            action_movie: {
-                friend: "Perfect! Action movies are my favorite too! 🎯",
-                responses: [
-                    { text: "Awesome, can't wait! 😎", next: "end_good" }
-                ]
-            },
-            comedy_movie: {
-                friend: "Haha, laughter is the best medicine 😂",
-                responses: [
-                    { text: "Exactly! Let's do it! 😄", next: "end_good" }
-                ]
-            },
-            stress_work: {
-                friend: "That sounds tough. Want to hang out and relax this weekend? ☕",
-                responses: [
-                    { text: "Yes, that'd be great! 🙏", next: "end_good", points: 1 },
-                    { text: "Maybe later, thanks.", next: "end_neutral" }
-                ]
-            },
-            stress_personal: {
-                friend: "I'm here whenever you want to talk ❤️",
-                responses: [
-                    { text: "Thank you, really appreciate it.", next: "end_good" },
-                    { text: "I need some time alone.", next: "end_neutral" }
-                ]
-            },
-            end_good: {
-                friend: "Looking forward to it! Talk soon! 🤗",
-                responses: [],
-                end: true
-            },
-            end_neutral: {
-                friend: "No problem, take care of yourself! 🌿",
-                responses: [],
-                end: true
+
+            clickbait_tree: {
+                start: {
+                    friend: "Wow! Právě jsem vyhrál nový iPhone! Musím jen kliknout na tenhle odkaz! 📱😲 https://newiphone.cz/getIphone=true",
+                    responses: [
+                        { text: "To bude podvod, neklikej! ⚠️", next: "tree5_correct1", points: 1 },
+                        { text: "Super, pak mi ho ukážeš 🤩", next: "tree5_wrong1" }
+                    ]
+                },
+                tree5_correct1: {
+                    friend: "Ale co když ne, já chci nový mobil 😅",
+                    responses: [
+                        { text: "Tyhle věci jsou vždycky podezřelý, nedělej to 🧐", next: "tree5_correct2", points: 1 },
+                        { text: "Tak jo, co se může stát, buď budeš mít mobil nebo ne 😅", next: "tree5_wrong1" }
+                    ]
+                },
+                tree5_correct2: {
+                    friend: "Poslední slovo, mám to zkusit nebo ne 😅",
+                    responses: [
+                        { text: "Nedělej to, je to podvod 😅", next: "tree5_end", points: 1 },
+                        { text: "Tak na to klikni, když to tak moc chceš 😅", next: "tree5_wrong1" }
+                    ]
+                },
+                tree5_wrong1: {
+                    friend: "O-ou... otevřelo mi to divné stránky. 😰",
+                    responses: [
+                        { text: "Rychle to zavři to a spusť antivirus 🛑", next: "tree5_endMiddle", points: 1 },
+                        { text: "To je v pohodě, nic se neděje. Budeš mít mobil 😎", next: "tree5_endBad" }
+                    ]
+                },
+                tree5_end: {
+                    friend: "Díky, že jsi mi to rozmluvil/a 😅",
+                    responses: [],
+                    end: true
+                },
+                tree5_endMiddle: {
+                    friend: "To bylo těsný, snad se nic nestalo😬",
+                    responses: [],
+                    end: true
+                },
+                tree5_endBad: {
+                    friend: "Super, to je bezva, dostal jsem Trojskýho koně, alespoň že ho antivirus dal do karantény 😰",
+                    responses: [],
+                    end: true
+                }
             }
         };
+
+        const treeKeys = Object.keys(allTrees);
+        const selectedKey = Phaser.Math.RND.pick(treeKeys);
+        this.dialogueTree = allTrees[selectedKey];
 
         this.showNode(this.currentNode);
     }
