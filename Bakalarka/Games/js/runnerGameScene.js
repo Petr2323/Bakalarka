@@ -268,29 +268,42 @@ class RunnerGameScene extends Phaser.Scene {
   endGame() {
     if (!this.gameStarted) return;
     this.gameStarted = false;
-
+  
     if (this.spawnTimer) {
       this.spawnTimer.remove();
     }
     this.passwordsGroup.clear(true, true);
-
+  
     this.input.keyboard.removeAllListeners();
-
+  
     this.player.setVisible(false);
-
-    const endMessage = `🎉 Konec hry!\nZískal si ${this.score}/${this.totalWords} bodů.`;
-
-    this.endBackground = this.add.rectangle(300, 280, 420, 120, 0x000000, 0.7)
+  
+    // Calculate final scaled score
+    let finalPoints;
+    if (this.score >= 5) {
+      finalPoints = 3;
+    } else if (this.score >= 3) {
+      finalPoints = 2;
+    } else if (this.score === 2) {
+      finalPoints = 1;
+    } else {
+      finalPoints = 0;
+    }
+  
+    const endMessage = `🎉 Konec hry!\nTvé herní skóre: ${this.score}/${this.totalWords}.\nZískané body: ${finalPoints}/3.`;
+  
+    this.endBackground = this.add.rectangle(300, 280, 480, 140, 0x000000, 0.7)
       .setOrigin(0.5)
       .setDepth(1);
-
+  
     this.add.text(300, 280, endMessage, {
-      fontSize: '26px',
+      fontSize: '24px',
       fill: '#ffffff',
-      align: 'center'
+      align: 'center',
+      wordWrap: { width: 460 }
     }).setOrigin(0.5).setDepth(2);
-
   }
+  
 }
 
 const config = {

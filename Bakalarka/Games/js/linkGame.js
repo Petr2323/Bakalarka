@@ -273,6 +273,17 @@ class SuspiciousLinkGame extends Phaser.Scene {
     }
 
     showGameOver() {
+        // Determine final game points based on correct answers
+        let finalPoints = 0;
+        if (this.score >= 4) {
+            finalPoints = 2;
+        } else if (this.score >= 2) {
+            finalPoints = 1;
+        } else {
+            finalPoints = 0;
+        }
+
+
         this.cameras.main.setBackgroundColor('#1a1a2e');
         this.add.rectangle(0, 0, this.gameWidth, this.gameHeight, 0x1a1a2e).setOrigin(0);
 
@@ -284,7 +295,7 @@ class SuspiciousLinkGame extends Phaser.Scene {
             strokeThickness: 5
         }).setOrigin(0.5);
 
-        this.add.text(this.gameWidth / 2, this.gameHeight / 2 - 30, `Skóre: ${this.score} / ${this.gameLinks.length}`, {
+        this.add.text(this.gameWidth / 2, this.gameHeight / 2 - 30, `Správně: ${this.score} / ${this.gameLinks.length}\n Získané body: ${finalPoints}/2`, {
             fontSize: '28px',
             fill: '#d8caff',
             stroke: '#000000',

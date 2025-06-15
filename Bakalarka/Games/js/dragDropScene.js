@@ -311,40 +311,86 @@ class CybersecurityScene extends Phaser.Scene {
     if (this.restartButton) this.restartButton.destroy();
   
     const incomplete = userOrder.includes(null);
-    const isCorrect = !incomplete && userOrder.every((text, i) => text === this.correctOrder[i]);
+    const sceneWidth = this.sys.game.config.width;
+    const feedbackY = 350;
   
-    let message;
+    // Disable interactivity
+    this.actionTexts.forEach(action => action.disableInteractive());
+    this.submitButton.disableInteractive();
+  
     if (incomplete) {
-      message = "⛔ Vyplň všechny odpovědi!";
-    } else if (isCorrect) {
-      message = "✅ Skvělé! Všechno je správně! Získáváš 2 body.";
-      this.score = 2;
-      this.scoreText.setText(`Score: ${this.score}`);
-    } else {
-      message = "❌ Některé odpovědi nejsou ve správném pořadí.";
+      const message = "⛔ Vyplň všechny odpovědi!";
+      const boxHeight = 150;
+  
+      this.feedbackBox = this.add.rectangle(sceneWidth / 2, feedbackY, 800, boxHeight, 0x000000, 0.7)
+        .setOrigin(0.5)
+        .setStrokeStyle(2, 0xffffff)
+        .setDepth(10);
+  
+      this.feedbackText = this.add.text(sceneWidth / 2, feedbackY - 20, message, {
+        fontSize: '20px',
+        color: '#ffffff',
+        fontStyle: 'bold',
+        align: 'center',
+        wordWrap: { width: 750 },
+        stroke: '#000',
+        strokeThickness: 2
+      }).setOrigin(0.5).setDepth(11);
+  
+      this.restartButton = this.add.text(sceneWidth / 2, feedbackY + 30, "Zavřít", {
+        fontSize: '22px',
+        backgroundColor: '#990000',
+        color: '#fff',
+        fontStyle: 'bold',
+        padding: { x: 20, y: 10 },
+        borderRadius: 10,
+        stroke: '#330000',
+        strokeThickness: 3,
+      }).setOrigin(0.5).setDepth(11).setInteractive({ useHandCursor: true });
+  
+      this.restartButton.on('pointerdown', () => {
+        this.feedbackBox.destroy();
+        this.feedbackText.destroy();
+        this.restartButton.destroy();
+        this.actionTexts.forEach(action => action.setInteractive({ useHandCursor: true }));
+        this.submitButton.setInteractive({ useHandCursor: true });
+        this.submitted = false;
+      });
+  
+      return;
     }
   
-    const sceneWidth = this.sys.game.config.width;
-    const feedbackY = 350; // moved 150 px higher
+    // Evaluation
+    const correctCount = userOrder.reduce((acc, val, i) => val === this.correctOrder[i] ? acc + 1 : acc, 0);
+    let message = "";
+    let points = 0;
+  
+    if (correctCount === this.correctOrder.length) {
+      message = "✅ Skvělé! Všechno je správně! Získáváš 2 body.";
+      points = 2;
+    } else if (correctCount >= 2) {
+      message = `👍 Dobrá práce! Máš správně ${correctCount} z ${this.correctOrder.length}. Získáváš 1 bod.`;
+      points = 1;
+    } else {
+      message = `❌ Bohužel. Máš správně ${correctCount} z ${this.correctOrder.length}. Nezískáváš body.`;
+      points = 0;
+    }
+  
+    this.score += points;
+    this.scoreText.setText(`Score: ${this.score}`);
   
     const correctList = this.correctOrder.map((act, idx) => `${idx + 1}. ${act}`).join('\n');
     const fullMessage = `${message}\n\nSprávné pořadí:\n${correctList}`;
   
     const lineCount = fullMessage.split('\n').length;
     const lineHeight = 26;
-    const boxHeight = lineCount * lineHeight + 80; // extra space for button
+    const boxHeight = lineCount * lineHeight + 80;
   
-    // Disable interactions on actions and submit button
-    this.actionTexts.forEach(action => action.disableInteractive());
-    this.submitButton.disableInteractive();
-  
-    // Feedback background box
     this.feedbackBox = this.add.rectangle(sceneWidth / 2, feedbackY, 1000, boxHeight, 0x000000, 0.7)
       .setOrigin(0.5)
       .setStrokeStyle(2, 0xffffff)
       .setDepth(10);
   
-    // Feedback message
     this.feedbackText = this.add.text(sceneWidth / 2, feedbackY - 40, fullMessage, {
       fontSize: '18px',
       color: '#ffffff',
@@ -357,8 +403,7 @@ class CybersecurityScene extends Phaser.Scene {
       padding: { x: 10, y: 10 }
     }).setOrigin(0.5).setDepth(11);
   
-    // Restart button inside feedback box, below the text
-    this.restartButton = this.add.text(sceneWidth / 2, feedbackY + boxHeight / 2 - 30, "🔄 Restartovat hru", {
+    this.restartButton = this.add.text(sceneWidth / 2, feedbackY + boxHeight / 2 - 30, "🔄 Další kolo", {
       fontSize: '22px',
       backgroundColor: '#005500',
       color: '#fff',
@@ -370,27 +415,19 @@ class CybersecurityScene extends Phaser.Scene {
     }).setOrigin(0.5).setDepth(11).setInteractive({ useHandCursor: true });
   
     this.restartButton.on('pointerdown', () => {
-      // Clear feedback elements
       this.feedbackBox.destroy();
       this.feedbackText.destroy();
       this.restartButton.destroy();
   
-      // Reset interactivity
       this.actionTexts.forEach(action => action.setInteractive({ useHandCursor: true }));
       this.submitButton.setInteractive({ useHandCursor: true });
   
       this.submitted = false;
-  
-      // Restart the game by resetting everything
       this.restartGame();
     });
   
     this.submitted = true;
   }
-  
-
-
-
 
   restartGame() {
     this.actionTexts.forEach(action => action.destroy());
