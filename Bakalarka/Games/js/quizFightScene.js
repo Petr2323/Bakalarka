@@ -493,11 +493,12 @@ class QuizFightScene extends Phaser.Scene {
     this.timerText.setText('');
     this.questionText && this.questionText.destroy();
     this.options.forEach(opt => opt && opt.destroy());
+    this.timerIcon.destroy();
 
     let endText = playerWon ? "Vyhrál jsi! Získal jsi 3 body." : "Prohrál jsi, nezískáváš žádný bod!";
     let color = playerWon ? '#00ff00' : '#ff0000';
 
-    let message = this.add.text(400, 300, endText, {
+    let message = this.add.text(400, 200, endText, {
       fontSize: '36px',
       fill: color,
       fontStyle: 'bold',
