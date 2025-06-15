@@ -9,21 +9,21 @@ class ChatScene extends Phaser.Scene {
 
     create() {
         // Background of chat area (for clarity)
-        this.add.rectangle(20, 20, 860, 410, 0x1a1a2e).setOrigin(0).setStrokeStyle(2, 0x6441a5);
+        this.add.rectangle(20, 20, 840, 410, 0x1a1a2e).setOrigin(0).setStrokeStyle(2, 0x6441a5);
 
         // Chat container for messages
         this.chatContainer = this.add.container(20, 20);
 
         // Mask for chat container so messages don't overflow
         const shape = this.make.graphics();
-        shape.fillRect(20, 20, 860, 410);
+        shape.fillRect(20, 20, 840, 410);
         this.chatContainer.setMask(new Phaser.Display.Masks.GeometryMask(this, shape));
 
         // Response buttons container (for player answers)
         this.responseButtons = this.add.container(20, 450);
 
         // Scroll buttons container (arrow up/down) - placed right side of response buttons
-        this.scrollButtons = this.add.container(800, 450);
+        this.scrollButtons = this.add.container(860, 337);
 
         // Create scroll up button
         // Create scroll up button (arrow up)
@@ -130,7 +130,7 @@ class ChatScene extends Phaser.Scene {
                     ]
                 },
                 tree2_end: {
-                    friend: "Rickroll, dostals mě 😊",
+                    friend: "Rickroll, dostal jsem tě 😊",
                     responses: [],
                     end: true
                 },
@@ -265,7 +265,7 @@ class ChatScene extends Phaser.Scene {
                 tree5_wrong1: {
                     friend: "O-ou... otevřelo mi to divné stránky. 😰",
                     responses: [
-                        { text: "Rychle to zavři to a spusť antivirus 🛑", next: "tree5_endMiddle", points: 1 },
+                        { text: "Rychle to zavři a spusť antivirus 🛑", next: "tree5_endMiddle", points: 1 },
                         { text: "To je v pohodě, nic se neděje. Budeš mít mobil 😎", next: "tree5_endBad" }
                     ]
                 },
@@ -343,7 +343,7 @@ class ChatScene extends Phaser.Scene {
         bubble.strokeRoundedRect(0, 0, bubbleWidth, bubbleHeight, 15);
 
         // Align bubble container to right side inside chat width (860)
-        const containerX = 860 - bubbleWidth;
+        const containerX = 840 - bubbleWidth;
         const container = this.add.container(containerX, this.chatHeight, [bubble, msgText]);
         msgText.setPosition(padding, padding / 2);
 
