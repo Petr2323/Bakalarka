@@ -7,12 +7,39 @@ class QuizFightScene extends Phaser.Scene {
     // No assets needed
   }
 
+  drawTimerIcon() {
+    const g = this.timerIcon;
+    g.clear();
+  
+    // Draw circle for clock face
+    g.lineStyle(3, 0xffff00);
+    g.fillStyle(0x333300, 1);
+    g.fillCircle(25, 25, 20);
+    g.strokeCircle(25, 25, 20);
+  
+    // Draw clock hands
+    g.lineStyle(3, 0xffff00);
+    // Hour hand (pointing at 12)
+    g.beginPath();
+    g.moveTo(25, 25);
+    g.lineTo(25, 12);
+    g.strokePath();
+  
+    // Minute hand (pointing at 3)
+    g.beginPath();
+    g.moveTo(25, 25);
+    g.lineTo(38, 25);
+    g.strokePath();
+  }
+  
+
   create() {
+    // Initialize game state but DON'T start the game yet
     this.playerHealth = 3;
     this.opponentHealth = 3;
     this.maxHealth = 3;
     this.options = [];
-
+    this.currentQuestionIndex = 0;
 
     this.graphics = this.add.graphics();
 
@@ -41,6 +68,20 @@ class QuizFightScene extends Phaser.Scene {
 
     this.updateHealthBars();
 
+   // Timer icon positioned left
+  this.timerIcon = this.add.graphics({ x: 350, y: 340 });
+  this.drawTimerIcon();
+
+  // Timer numeric text right next to icon, aligned vertically center
+  this.timerText = this.add.text(400, 365, '15', {
+    fontSize: '28px',
+    fill: '#ffff66',
+    fontStyle: 'bold',
+    stroke: '#333300',
+    strokeThickness: 3,
+  }).setOrigin(0, 0.5);
+
+    // Question bank (unchanged)
     // Question bank
     this.questionBank = [
       {
@@ -77,7 +118,7 @@ class QuizFightScene extends Phaser.Scene {
           B: "Speciální typ antiviru",
           C: "Malware, který se tváří jako aplikace, ale škodí počítači"
         },
-        correct: "B"
+        correct: "C"
       },
       {
         question: "Jak se můžeme chránit před kybernetickými hrozbami?",
@@ -136,14 +177,69 @@ class QuizFightScene extends Phaser.Scene {
     ];
 
     this.shuffleQuestions();
-    this.currentQuestionIndex = 0;
 
+    // Show start screen message & start button before game begins
+    this.showStartMenu();
+  }
+
+  showStartMenu() {
+    // Fully opaque black overlay (no transparency)
+    this.overlay = this.add.rectangle(400, 300, 800, 600, 0x000000, 1);
+
+    // Add a semi-transparent panel behind the text and button
+    this.startPanel = this.add.rectangle(400, 300, 700, 300, 0x222244, 0.85);
+    this.startPanel.setStrokeStyle(3, 0x6666aa);
+
+    const startMessage = "Vítejte v kvízové soubojové hře!\n\nOdpovězte správně na otázky, abyste porazili bosse.\nMáte 15 sekund na každou otázku.";
+
+    this.startText = this.add.text(400, 230, startMessage, {
+      fontSize: '26px',
+      fill: '#ffffff',
+      align: 'center',
+      fontStyle: 'bold',
+      wordWrap: { width: 650 },
+      padding: { x: 20, y: 20 }
+    }).setOrigin(0.5);
+
+    this.startButton = this.add.text(400, 360, "Začít hru", {
+      fontSize: '34px',
+      fill: '#ffffff',
+      backgroundColor: '#1a73e8',
+      padding: { x: 24, y: 14 },
+      fontStyle: 'bold',
+      stroke: '#0c47a1',
+      strokeThickness: 3,
+      borderRadius: 12,
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+    // Bring to top so button is definitely above overlay
+    this.children.bringToTop(this.startPanel);
+    this.children.bringToTop(this.startText);
+    this.children.bringToTop(this.startButton);
+
+    this.startButton.on('pointerdown', () => {
+      this.overlay.destroy();
+      this.startPanel.destroy();
+      this.startText.destroy();
+      this.startButton.destroy();
+      this.startGame();
+    });
+  }
+
+
+
+  startGame() {
+    console.log("Game started!");
+    this.shuffleQuestions();
     this.input.enabled = true;
+    this.currentQuestionIndex = 0;
+    this.playerHealth = this.maxHealth;
+    this.opponentHealth = this.maxHealth;
+    this.updateHealthBars();
     this.showQuestion();
   }
 
   shuffleQuestions() {
-    // Fisher-Yates shuffle
     for (let i = this.questionBank.length - 1; i > 0; i--) {
       let j = Math.floor(Math.random() * (i + 1));
       [this.questionBank[i], this.questionBank[j]] = [this.questionBank[j], this.questionBank[i]];
@@ -161,10 +257,8 @@ class QuizFightScene extends Phaser.Scene {
     let playerX = this.player.x - barWidth / 2;
     let playerY = this.player.y - this.player.height / 2 - 30;
 
-    // Background bar
     this.graphics.fillStyle(0x222222, 1);
     this.graphics.fillRect(playerX, playerY, barWidth, barHeight);
-    // Health fill
     this.graphics.fillStyle(0x00ff00, 1);
     this.graphics.fillRect(
       playerX + padding,
@@ -187,23 +281,18 @@ class QuizFightScene extends Phaser.Scene {
       barHeight - padding * 2
     );
 
-    // Bring graphics above background but below text/buttons
     this.children.bringToTop(this.graphics);
   }
 
   showQuestion() {
-    // Destroy previous question text
-    if (this.questionText) {
-      this.questionText.destroy();
-    }
-
-    // Destroy all old options
-    this.options.forEach(opt => {
-      if (opt) opt.destroy();
-    });
+    // Destroy previous question & options if they exist
+    if (this.questionText) this.questionText.destroy();
+    this.options.forEach(opt => opt && opt.destroy());
     this.options = [];
 
-    // If no more questions, end game
+    // Clear any previous timer event
+    if (this.timerEvent) this.timerEvent.remove();
+
     if (this.currentQuestionIndex >= this.questionBank.length) {
       this.endGame(true);
       return;
@@ -211,37 +300,74 @@ class QuizFightScene extends Phaser.Scene {
 
     this.currentQuestion = this.questionBank[this.currentQuestionIndex];
 
-    // Show question text
+    // Show question text smaller so it fits
     this.questionText = this.add.text(50, 50, this.currentQuestion.question, {
-      fontSize: '24px',
+      fontSize: '20px',
       fill: '#ccc',
       fontStyle: 'bold',
       wordWrap: { width: 700 }
     });
 
-    // Style for options
+    // Option style smaller
     const optionStyle = {
-      fontSize: '22px',
+      fontSize: '18px',
       fill: '#fff',
       backgroundColor: '#222244',
-      padding: { x: 10, y: 6 },
+      padding: { x: 8, y: 5 },
       borderRadius: 6,
       fontStyle: 'bold'
     };
 
-    // Create new options and store references
+    // Create options with smaller spacing for better fit
     this.optionA = this.add.text(50, 110, "A: " + this.currentQuestion.options.A, optionStyle).setInteractive({ useHandCursor: true });
-    this.optionB = this.add.text(50, 160, "B: " + this.currentQuestion.options.B, optionStyle).setInteractive({ useHandCursor: true });
-    this.optionC = this.add.text(50, 210, "C: " + this.currentQuestion.options.C, optionStyle).setInteractive({ useHandCursor: true });
+    this.optionB = this.add.text(50, 150, "B: " + this.currentQuestion.options.B, optionStyle).setInteractive({ useHandCursor: true });
+    this.optionC = this.add.text(50, 190, "C: " + this.currentQuestion.options.C, optionStyle).setInteractive({ useHandCursor: true });
 
     this.options = [this.optionA, this.optionB, this.optionC];
 
     this.optionA.on('pointerdown', () => this.handleAnswer("A"));
     this.optionB.on('pointerdown', () => this.handleAnswer("B"));
     this.optionC.on('pointerdown', () => this.handleAnswer("C"));
+
+    // Start 15-second countdown timer
+    this.startTimer(15);
   }
 
+  startTimer(seconds) {
+    this.timeLeft = seconds;
+    this.timerText.setText(`${this.timeLeft}s`);
 
+    this.timerEvent = this.time.addEvent({
+      delay: 1000,
+      repeat: seconds - 1,
+      callback: () => {
+        this.timeLeft--;
+        this.timerText.setText(`${this.timeLeft}s`);
+        if (this.timeLeft <= 0) {
+          this.timerExpired();
+        }
+      }
+    });
+  }
+
+  timerExpired() {
+    this.input.enabled = false;
+
+    // Highlight correct answer only
+    [this.optionA, this.optionB, this.optionC].forEach(opt => {
+      if (opt.text.startsWith(this.currentQuestion.correct)) {
+        opt.setStyle({ backgroundColor: '#006600' });
+      } else {
+        opt.setStyle({ backgroundColor: '#660000' });
+      }
+    });
+
+    this.showFeedbackText("Čas vypršel!", '#ffcc00', this.player.x, this.player.y - this.player.height / 2 - 60, () => {
+      this.playerHealth--;
+      this.updateHealthBars();
+      this.attackPlayer(() => this.checkGameStatus());
+    });
+  }
 
   resetOptionStyles() {
     const defaultStyle = {
@@ -256,12 +382,16 @@ class QuizFightScene extends Phaser.Scene {
     });
   }
 
-
   handleAnswer(selected) {
     if (!this.input.enabled) return;
     this.input.enabled = false;
 
-    // Highlight answers: green correct, red others
+    // Stop timer if active
+    if (this.timerEvent) {
+      this.timerEvent.remove();
+      this.timerText.setText('');
+    }
+
     [this.optionA, this.optionB, this.optionC].forEach(opt => {
       if (opt.text.startsWith(selected)) {
         opt.setStyle({ backgroundColor: selected === this.currentQuestion.correct ? '#006600' : '#660000' });
@@ -272,7 +402,6 @@ class QuizFightScene extends Phaser.Scene {
       }
     });
 
-    // Show feedback text above player (green or red)
     const correct = selected === this.currentQuestion.correct;
     this.showFeedbackText(correct ? "Správně!" : "Špatně!", correct ? '#00ff00' : '#ff0000', this.player.x, this.player.y - this.player.height / 2 - 60, () => {
       if (correct) {
@@ -354,28 +483,48 @@ class QuizFightScene extends Phaser.Scene {
     } else {
       this.currentQuestionIndex++;
       this.input.enabled = true;
+      this.resetOptionStyles();
       this.showQuestion();
     }
   }
 
   endGame(playerWon) {
-    const message = playerWon ? "Gratuluji! Získáváš 3 body." : "Prohrál jsi!";
+    this.input.enabled = false;
+    this.timerText.setText('');
+    this.questionText && this.questionText.destroy();
+    this.options.forEach(opt => opt && opt.destroy());
 
-    this.add.text(400, 300, message, {
+    let endText = playerWon ? "Vyhrál jsi! Získal jsi 3 body." : "Prohrál jsi, nezískáváš žádný bod!";
+    let color = playerWon ? '#00ff00' : '#ff0000';
+
+    let message = this.add.text(400, 300, endText, {
       fontSize: '36px',
-      fill: '#fff',
+      fill: color,
       fontStyle: 'bold',
       stroke: '#000',
       strokeThickness: 4
     }).setOrigin(0.5);
 
-    this.input.enabled = false;
+    // Add restart button
+    let restartButton = this.add.text(400, 380, "Restartovat", {
+      fontSize: '28px',
+      fill: '#fff',
+      backgroundColor: '#4444aa',
+      padding: { x: 20, y: 10 },
+      fontStyle: 'bold',
+      stroke: '#222266',
+      strokeThickness: 3,
+      borderRadius: 8,
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
-    this.time.delayedCall(3000, () => {
-      this.scene.restart();
+    restartButton.on('pointerdown', () => {
+      message.destroy();
+      restartButton.destroy();
+      this.startGame();
     });
   }
 }
+
 
 const config = {
   type: Phaser.AUTO,
