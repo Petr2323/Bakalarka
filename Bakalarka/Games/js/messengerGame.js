@@ -452,7 +452,25 @@ class ChatScene extends Phaser.Scene {
             fontFamily: '"Segoe UI Mono", monospace',
         });
 
+        this.nextGameButton = this.add.text(100, 100, "Další hra", {
+            fontSize: '28px',
+            backgroundColor: '#007700',
+            padding: { x: 20, y: 10 },
+            fill: '#fff',
+            fontStyle: 'bold',
+            align: 'center',
+            cursor: 'pointer'
+          }).setOrigin(0.5).setDepth(2).setInteractive();
+      
+          this.nextGameButton.on('pointerover', () => this.nextGameButton.setStyle({ backgroundColor: '#00aa00' }));
+          this.nextGameButton.on('pointerout', () => this.nextGameButton.setStyle({ backgroundColor: '#007700' }));
+      
+          this.nextGameButton.on('pointerdown', () => {
+            window.location.href = 'linkGame.html';
+          });
+
         this.responseButtons.add(endText);
+        this.responseButtons.add(this.nextGameButton);
     }
 }
 

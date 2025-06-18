@@ -346,7 +346,7 @@ class SuspiciousLinkGame extends Phaser.Scene {
         this.restartButtonBg.lineStyle(3, 0x3a2c8d, 1);
         this.restartButtonBg.strokeRoundedRect(btnX, btnY, btnWidth, btnHeight, 15);
 
-        this.restartButton = this.add.text(this.gameWidth / 2, btnY + btnHeight / 2, 'Hraj znovu', {
+        this.restartButton = this.add.text(this.gameWidth / 2, btnY + btnHeight / 2, 'Hodnocení', {
             fontSize: '28px',
             fill: '#ffffff',
             fontStyle: 'bold',
@@ -373,9 +373,7 @@ class SuspiciousLinkGame extends Phaser.Scene {
         });
 
         this.restartButton.on('pointerdown', () => {
-            this.restartButtonBg.destroy();
-            this.restartButton.destroy();
-            this.scene.restart();
+            window.location.href = 'results.html';
         });
     }
 

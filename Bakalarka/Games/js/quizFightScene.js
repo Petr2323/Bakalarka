@@ -601,50 +601,54 @@ class QuizFightScene extends Phaser.Scene {
   }
 
   endGame(playerWon) {
-    this.input.enabled = false;
     this.timerText.setText('');
     this.questionText && this.questionText.destroy();
     this.options.forEach(opt => opt && opt.destroy());
     this.timerIcon.destroy();
 
     if (playerWon) {
-      //When player wins:
-      this.player.setFrame(8);
-      this.opponent.setFrame(4);
+        this.player.setFrame(8);
+        this.opponent.setFrame(4);
     } else {
-      // When player loses:
-      this.player.setFrame(4);
-      this.opponent.setFrame(8);
+        this.player.setFrame(4);
+        this.opponent.setFrame(8);
     }
+
     let endText = playerWon ? "Vyhrál jsi! Získal jsi 3 body." : "Prohrál jsi, nezískáváš žádný bod!";
     let color = playerWon ? '#00ff00' : '#ff0000';
 
     let message = this.add.text(400, 200, endText, {
-      fontSize: '36px',
-      fill: color,
-      fontStyle: 'bold',
-      stroke: '#000',
-      strokeThickness: 4
+        fontSize: '36px',
+        fill: color,
+        fontStyle: 'bold',
+        stroke: '#000',
+        strokeThickness: 4
     }).setOrigin(0.5);
 
-    // Add restart button
-    let restartButton = this.add.text(400, 380, "Restartovat", {
-      fontSize: '28px',
-      fill: '#fff',
-      backgroundColor: '#4444aa',
-      padding: { x: 20, y: 10 },
-      fontStyle: 'bold',
-      stroke: '#222266',
-      strokeThickness: 3,
-      borderRadius: 8,
+    // "Next Game" button
+        this.nextButton = this.add.text(400, 450, "Další hra", {
+        fontSize: '28px',
+        fill: '#fff',
+        backgroundColor: '#228B22', // green background
+        padding: { x: 20, y: 10 },
+        fontStyle: 'bold',
+        stroke: '#004400',
+        strokeThickness: 3
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
-    restartButton.on('pointerdown', () => {
-      message.destroy();
-      restartButton.destroy();
-      this.startGame();
+    this.nextButton.on('pointerover', () => {
+        this.nextButton.setStyle({ backgroundColor: '#2ecc71' });
     });
-  }
+
+    this.nextButton.on('pointerout', () => {
+        this.nextButton.setStyle({ backgroundColor: '#228B22' });
+    });
+
+    this.nextButton.on('pointerdown', () => {
+        window.location.href = 'messengerGame.html'; // Change to your target HTML file
+    });
+}
+
 }
 
 
