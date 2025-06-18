@@ -308,7 +308,7 @@ class CybersecurityScene extends Phaser.Scene {
   
     if (this.feedbackBox) this.feedbackBox.destroy();
     if (this.feedbackText) this.feedbackText.destroy();
-    if (this.restartButton) this.restartButton.destroy();
+    if (this.nextGameButton) this.nextGameButton.destroy();
   
     const incomplete = userOrder.includes(null);
     const sceneWidth = this.sys.game.config.width;
@@ -337,7 +337,7 @@ class CybersecurityScene extends Phaser.Scene {
         strokeThickness: 2
       }).setOrigin(0.5).setDepth(11);
   
-      this.restartButton = this.add.text(sceneWidth / 2, feedbackY + 30, "Zavřít", {
+      this.nextGameButton = this.add.text(sceneWidth / 2, feedbackY + 30, "Zavřít", {
         fontSize: '22px',
         backgroundColor: '#990000',
         color: '#fff',
@@ -348,10 +348,10 @@ class CybersecurityScene extends Phaser.Scene {
         strokeThickness: 3,
       }).setOrigin(0.5).setDepth(11).setInteractive({ useHandCursor: true });
   
-      this.restartButton.on('pointerdown', () => {
+      this.nextGameButton.on('pointerdown', () => {
         this.feedbackBox.destroy();
         this.feedbackText.destroy();
-        this.restartButton.destroy();
+        this.nextGameButton.destroy();
         this.actionTexts.forEach(action => action.setInteractive({ useHandCursor: true }));
         this.submitButton.setInteractive({ useHandCursor: true });
         this.submitted = false;
@@ -403,7 +403,7 @@ class CybersecurityScene extends Phaser.Scene {
       padding: { x: 10, y: 10 }
     }).setOrigin(0.5).setDepth(11);
   
-    this.restartButton = this.add.text(sceneWidth / 2, feedbackY + boxHeight / 2 - 30, "🔄 Další kolo", {
+    this.nextGameButton = this.add.text(sceneWidth / 2, feedbackY + boxHeight / 2 - 30, "Další hra", {
       fontSize: '22px',
       backgroundColor: '#005500',
       color: '#fff',
@@ -414,16 +414,9 @@ class CybersecurityScene extends Phaser.Scene {
       strokeThickness: 3,
     }).setOrigin(0.5).setDepth(11).setInteractive({ useHandCursor: true });
   
-    this.restartButton.on('pointerdown', () => {
-      this.feedbackBox.destroy();
-      this.feedbackText.destroy();
-      this.restartButton.destroy();
-  
-      this.actionTexts.forEach(action => action.setInteractive({ useHandCursor: true }));
-      this.submitButton.setInteractive({ useHandCursor: true });
-  
-      this.submitted = false;
-      this.restartGame();
+    this.nextGameButton.on('pointerdown', () => {
+      
+      window.location.href = 'quizFight.html';
     });
   
     this.submitted = true;

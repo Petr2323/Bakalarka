@@ -4,7 +4,7 @@ class RunnerGameScene extends Phaser.Scene {
     this.weakPasswords = ["123456", "password", "qwerty", "tatinek", "Pepicek", "Marie", "veslo", "borec", "zezlo", "smrcek"];
     this.mediumPasswords = ["369852147", "leto2005", "Harik2323", "ZmrZliNa", "Sup3rMan", "wes1o", "Maminka123", "superHeszl0",
       "11dolar22", "SmRk11"];
-    this.strongPasswords = ["MamRad$k0lu", "B@lonek7", "$rd1ck0", "Kra1#123", "BE@Ttl3s", "SlUn1ck0", "St@rHv3zd@",
+    this.strongPasswords = ["MamRad$k0lu", "B@lonek7", "$rd1ck0", "Kra1#123", "BE@Ttl3s", "$lUn1ck0", "St@rHv3zd@",
       "koCk@3113", "$tud3ntZSH150", "AqVariU$56"];
 
   }

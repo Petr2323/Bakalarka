@@ -616,7 +616,7 @@ class QuizFightScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     // Add restart button
-    let restartButton = this.add.text(400, 380, "Restartovat", {
+    let nextGameButton = this.add.text(400, 380, "Další hra", {
       fontSize: '28px',
       fill: '#fff',
       backgroundColor: '#4444aa',
@@ -627,10 +627,8 @@ class QuizFightScene extends Phaser.Scene {
       borderRadius: 8,
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
-    restartButton.on('pointerdown', () => {
-      message.destroy();
-      restartButton.destroy();
-      this.startGame();
+    nextGameButton.on('pointerdown', () => {
+      window.location.href = 'messengerGame.html';
     });
   }
 }
