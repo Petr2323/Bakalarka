@@ -105,9 +105,9 @@ class CybersecurityScene extends Phaser.Scene {
 
   showStartMenu() {
     this.overlay = this.add.rectangle(550, 300, 1100, 600, 0x000000, 0.7);
-  
+
     const instructions = "Vítejte ve hře Sestav správné řešení!\n\nPřetáhni akce na správná čísla ve správném pořadí. \n\nPři kliknutí na přetaženou akci se akce vrátí zpátky na začátek";
-  
+
     this.guideText = this.add.text(550, 250, instructions, {
       fontSize: '26px',
       fontFamily: 'Arial',
@@ -127,7 +127,7 @@ class CybersecurityScene extends Phaser.Scene {
       },
       borderRadius: 15
     }).setOrigin(0.5);
-  
+
     this.startButton = this.add.text(550, 400, 'Začít hru', {
       fontSize: '32px',
       fontFamily: 'Arial',
@@ -146,7 +146,7 @@ class CybersecurityScene extends Phaser.Scene {
         fill: true
       }
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
-  
+
     this.startButton.on('pointerdown', () => {
       this.overlay.destroy();
       this.guideText.destroy();
@@ -154,7 +154,7 @@ class CybersecurityScene extends Phaser.Scene {
       this.initGame();
     });
   }
-  
+
 
   initGame() {
     this.submitted = false;
@@ -192,7 +192,7 @@ class CybersecurityScene extends Phaser.Scene {
     const startY = 140;
     const numberSpacing = 60;
     const zoneWidth = 420;
-    const zoneHeight = 60;
+    const zoneHeight = 50;
     const marginX = 140;
 
     for (let i = 0; i < this.actionCount; i++) {
@@ -258,8 +258,15 @@ class CybersecurityScene extends Phaser.Scene {
       gameObject.x = numberLabel.x + numberLabel.displayWidth / 2 + gameObject.displayWidth / 2 + marginX;
       gameObject.y = numberLabel.y;
 
-      gameObject.x = numberLabel.x + marginX;
+      const margin = 20;
+      const minGap = 20;
+      const labelRightEdge = numberLabel.x + numberLabel.displayWidth / 2;
+
+      gameObject.setWordWrapWidth(400); // optional: wraps if too long
+
+      gameObject.x = labelRightEdge + gameObject.displayWidth / 2 + minGap;
       gameObject.y = numberLabel.y;
+
     });
 
     if (this.submitButton) this.submitButton.destroy();
@@ -305,28 +312,28 @@ class CybersecurityScene extends Phaser.Scene {
 
   checkAnswer() {
     const userOrder = this.dropAssignments.map(a => a ? a.text : null);
-  
+
     if (this.feedbackBox) this.feedbackBox.destroy();
     if (this.feedbackText) this.feedbackText.destroy();
     if (this.nextGameButton) this.nextGameButton.destroy();
-  
+
     const incomplete = userOrder.includes(null);
     const sceneWidth = this.sys.game.config.width;
     const feedbackY = 350;
-  
+
     // Disable interactivity
     this.actionTexts.forEach(action => action.disableInteractive());
     this.submitButton.disableInteractive();
-  
+
     if (incomplete) {
       const message = "⛔ Vyplň všechny odpovědi!";
       const boxHeight = 150;
-  
+
       this.feedbackBox = this.add.rectangle(sceneWidth / 2, feedbackY, 800, boxHeight, 0x000000, 0.7)
         .setOrigin(0.5)
         .setStrokeStyle(2, 0xffffff)
         .setDepth(10);
-  
+
       this.feedbackText = this.add.text(sceneWidth / 2, feedbackY - 20, message, {
         fontSize: '20px',
         color: '#ffffff',
@@ -336,7 +343,7 @@ class CybersecurityScene extends Phaser.Scene {
         stroke: '#000',
         strokeThickness: 2
       }).setOrigin(0.5).setDepth(11);
-  
+
       this.nextGameButton = this.add.text(sceneWidth / 2, feedbackY + 30, "Zavřít", {
         fontSize: '22px',
         backgroundColor: '#990000',
@@ -347,7 +354,7 @@ class CybersecurityScene extends Phaser.Scene {
         stroke: '#330000',
         strokeThickness: 3,
       }).setOrigin(0.5).setDepth(11).setInteractive({ useHandCursor: true });
-  
+
       this.nextGameButton.on('pointerdown', () => {
         this.feedbackBox.destroy();
         this.feedbackText.destroy();
@@ -356,15 +363,15 @@ class CybersecurityScene extends Phaser.Scene {
         this.submitButton.setInteractive({ useHandCursor: true });
         this.submitted = false;
       });
-  
+
       return;
     }
-  
+
     // Evaluation
     const correctCount = userOrder.reduce((acc, val, i) => val === this.correctOrder[i] ? acc + 1 : acc, 0);
     let message = "";
     let points = 0;
-  
+
     if (correctCount === this.correctOrder.length) {
       message = "✅ Skvělé! Všechno je správně! Získáváš 2 body.";
       points = 2;
@@ -375,22 +382,22 @@ class CybersecurityScene extends Phaser.Scene {
       message = `❌ Bohužel. Máš správně ${correctCount} z ${this.correctOrder.length}. Nezískáváš body.`;
       points = 0;
     }
-  
+
     this.score += points;
     this.scoreText.setText(`Score: ${this.score}`);
-  
+
     const correctList = this.correctOrder.map((act, idx) => `${idx + 1}. ${act}`).join('\n');
     const fullMessage = `${message}\n\nSprávné pořadí:\n${correctList}`;
-  
+
     const lineCount = fullMessage.split('\n').length;
     const lineHeight = 26;
     const boxHeight = lineCount * lineHeight + 80;
-  
+
     this.feedbackBox = this.add.rectangle(sceneWidth / 2, feedbackY, 1000, boxHeight, 0x000000, 0.7)
       .setOrigin(0.5)
       .setStrokeStyle(2, 0xffffff)
       .setDepth(10);
-  
+
     this.feedbackText = this.add.text(sceneWidth / 2, feedbackY - 40, fullMessage, {
       fontSize: '18px',
       color: '#ffffff',
@@ -402,7 +409,7 @@ class CybersecurityScene extends Phaser.Scene {
       strokeThickness: 2,
       padding: { x: 10, y: 10 }
     }).setOrigin(0.5).setDepth(11);
-  
+
     this.nextGameButton = this.add.text(sceneWidth / 2, feedbackY + boxHeight / 2 - 30, "Další hra", {
       fontSize: '22px',
       backgroundColor: '#005500',
@@ -413,12 +420,12 @@ class CybersecurityScene extends Phaser.Scene {
       stroke: '#003300',
       strokeThickness: 3,
     }).setOrigin(0.5).setDepth(11).setInteractive({ useHandCursor: true });
-  
+
     this.nextGameButton.on('pointerdown', () => {
-      
+
       window.location.href = 'quizFight.html';
     });
-  
+
     this.submitted = true;
   }
 
