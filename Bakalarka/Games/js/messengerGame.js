@@ -169,7 +169,7 @@ class ChatScene extends Phaser.Scene {
                         { text: "Vyzvedni ho, třeba to budou body navíc do herního obchodu 👏", next: "tree3_endBad" },
                         { text: "Napiš na podporu hry, hlavně nic nevyzvedávej 🚨", next: "tree3_end", points: 1 }
                     ],
-                    
+
                 },
                 tree3_end: {
                     friend: "Díky, už jsem klidnější 👏",
@@ -185,7 +185,7 @@ class ChatScene extends Phaser.Scene {
                     friend: "SMS: přišel Vám balík s herními předměty, vysvedněte si ho v Alzabox.",
                     responses: [
                         { text: "*jít vyzvednout balík, zaplatit dobírku 200Kč 👏", next: "tree3_endBadSolo" },
-                        { text: "*napiš na podporu hry, hlavně nic nevyzvedávej 🚨", next:"tree3_endSolo",points: 1 }
+                        { text: "*napiš na podporu hry, hlavně nic nevyzvedávej 🚨", next: "tree3_endSolo", points: 1 }
                     ],
                 },
                 tree3_endSolo: {
@@ -211,7 +211,7 @@ class ChatScene extends Phaser.Scene {
                 tree4_correct1: {
                     friend: "Prý je to urgentní, mohl se mi tam prý někdo nabourat. 😳",
                     responses: [
-                        { text: "Je to vážný, dej mu rychle své údaje 😬", next: "tree4_wrong1"},
+                        { text: "Je to vážný, dej mu rychle své údaje 😬", next: "tree4_wrong1" },
                         { text: "Ignoruj ho, napiš e-mail IT učiteli.", next: "tree4_correct2", points: 1 }
                     ]
                 },
@@ -460,14 +460,25 @@ class ChatScene extends Phaser.Scene {
             fontStyle: 'bold',
             align: 'center',
             cursor: 'pointer'
-          }).setOrigin(0.5).setDepth(2).setInteractive();
-      
-          this.nextGameButton.on('pointerover', () => this.nextGameButton.setStyle({ backgroundColor: '#00aa00' }));
-          this.nextGameButton.on('pointerout', () => this.nextGameButton.setStyle({ backgroundColor: '#007700' }));
-      
-          this.nextGameButton.on('pointerdown', () => {
+        }).setOrigin(0.5).setDepth(2).setInteractive();
+
+        this.nextGameButton.on('pointerover', () => this.nextGameButton.setStyle({ backgroundColor: '#00aa00' }));
+        this.nextGameButton.on('pointerout', () => this.nextGameButton.setStyle({ backgroundColor: '#007700' }));
+
+        this.nextGameButton.on('pointerdown', () => {
+            if (localStorage.getItem('playerScore') !== null) {
+                // It exists
+                let current = parseInt(localStorage.getItem('playerScore'));
+                localStorage.setItem('playerScore', current + this.score);
+                console.log("Current points:", current + this.score);
+            } else {
+                // It does not exist yet
+                console.log("No points stored yet.");
+                localStorage.setItem('playerScore', this.score); // Optionally initialize it
+            }
+
             window.location.href = 'linkGame.html';
-          });
+        });
 
         this.responseButtons.add(endText);
         this.responseButtons.add(this.nextGameButton);

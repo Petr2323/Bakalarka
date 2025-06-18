@@ -423,6 +423,17 @@ class CybersecurityScene extends Phaser.Scene {
 
     this.nextGameButton.on('pointerdown', () => {
 
+      if (localStorage.getItem('playerScore') !== null) {
+        // It exists
+        let current = parseInt(localStorage.getItem('playerScore'));
+        localStorage.setItem('playerScore', current + points);
+        console.log("Current points:", current + points);
+    } else {
+        // It does not exist yet
+        console.log("No points stored yet.");
+        localStorage.setItem('playerScore', points); // Optionally initialize it
+    }
+
       window.location.href = 'quizFight.html';
     });
 

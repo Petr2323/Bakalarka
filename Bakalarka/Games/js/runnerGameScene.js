@@ -388,6 +388,17 @@ class RunnerGameScene extends Phaser.Scene {
     this.nextGameButton.on('pointerout', () => this.nextGameButton.setStyle({ backgroundColor: '#007700' }));
 
     this.nextGameButton.on('pointerdown', () => {
+      if (localStorage.getItem('playerScore') !== null) {
+        // It exists
+        let current = parseInt(localStorage.getItem('playerScore'));
+        localStorage.setItem('playerScore', current + finalPoints);
+        console.log("Current points:", current + finalPoints);
+      } else {
+        // It does not exist yet
+        console.log("No points stored yet.");
+        localStorage.setItem('playerScore', finalPoints); // Optionally initialize it
+      }
+
       window.location.href = 'dragDrop.html';
     });
   }

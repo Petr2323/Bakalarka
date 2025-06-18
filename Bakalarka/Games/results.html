@@ -1,13 +1,115 @@
 <!DOCTYPE html>
 <html lang="cs">
+
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Hodnocení</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Hodnocení hráče</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f2f2f2;
+      color: #333;
+      max-width: 800px;
+      margin: auto;
+      text-align: center;
+    }
+
+    h1 {
+      color: #0073e6;
+    }
+
+    .score {
+      font-size: 20px;
+      margin: 10px 0;
+    }
+
+    .grade {
+      font-size: 26px;
+      margin-top: 20px;
+      font-weight: bold;
+      color: #0073e6;
+    }
+
+    .grade-img {
+      margin-top: 25px;
+      max-width: 100%;
+      height: auto;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+    }
+
+    .start-button {
+      display: block;
+      margin: 40px auto 0 auto;
+      padding: 12px 30px;
+      font-size: 18px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    .start-button:hover {
+      background-color: #0056b3;
+      transform: scale(1.05);
+    }
+  </style>
 </head>
+
 <body>
-  
-    <p>Skóre:</p>
+
+  <h1>🎯 Tvůj výsledek</h1>
+  <p class="score">Skóre: <span id="scoreDisplay">0</span> / 19</p>
+  <p class="grade" id="gradeDisplay"></p>
+  <img id="gradeImage" class="grade-img" src="" alt="" style="display: none;" />
+
+  <button class="start-button" onclick="window.location.href='index.html'">
+    🔙 Vrátit se do menu
+  </button>
+
+  <script>
+    // Migrate old score if it exists
+    const oldScore = localStorage.getItem('playerScore');
+    if (oldScore !== null) {
+      localStorage.setItem('totalScore', oldScore);
+      localStorage.removeItem('playerScore');
+    }
+
+    const score = parseInt(localStorage.getItem('totalScore')) || 0;
+    document.getElementById('scoreDisplay').textContent = score;
+
+    let grade = '';
+    let imageUrl = '';
+
+    if (score >= 17) {
+      grade = 'Výborně (1) – Skvělý výkon!';
+      imageUrl = 'https://media.giphy.com/media/3o7abB06u9bNzA8lu8/giphy.gif';
+    } else if (score >= 14) {
+      grade = 'Chvalitebně (2) – Velmi dobré!';
+      imageUrl = 'https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif';
+    } else if (score >= 10) {
+      grade = 'Dobře (3) – Dobrá práce, ještě to chce doladit!';
+      imageUrl = 'https://media.giphy.com/media/xT0GqeSlGSRQutAoE8/giphy.gif';
+    } else if (score >= 6) {
+      grade = 'Dostatečně (4) – Zlepšení je potřeba, nevzdávej to!';
+      imageUrl = 'https://media.giphy.com/media/3o6ZtaO9BZHcOjmErm/giphy.gif';
+    } else {
+      grade = 'Nedostatečně (5) – Nevadí, příště to bude lepší!';
+      imageUrl = 'https://media.giphy.com/media/l3q2K5jinAlChoCLS/giphy.gif';
+    }
+
+    document.getElementById('gradeDisplay').textContent = `Hodnocení: ${grade}`;
+    const img = document.getElementById('gradeImage');
+    img.src = imageUrl;
+    img.style.display = 'block';
+    img.alt = grade;
+  </script>
 
 </body>
+
 </html>

@@ -607,49 +607,63 @@ class QuizFightScene extends Phaser.Scene {
     this.questionText && this.questionText.destroy();
     this.options.forEach(opt => opt && opt.destroy());
     this.timerIcon.destroy();
+    this.score = 0;
 
     if (playerWon) {
-        this.player.setFrame(8);
-        this.opponent.setFrame(4);
+      this.player.setFrame(8);
+      this.opponent.setFrame(4);
+      this.score = 3;
     } else {
-        this.player.setFrame(4);
-        this.opponent.setFrame(8);
+      this.player.setFrame(4);
+      this.opponent.setFrame(8);
+      this.score = 0;
     }
 
-    let endText = playerWon ? "Vyhrál jsi! Získal jsi 3 body." : "Prohrál jsi, nezískáváš žádný bod!";
+    let endText = playerWon ? "Vyhrál jsi! Získal jsi 3 body." : "Prohrál jsi, nezískáváš žádné body!";
     let color = playerWon ? '#00ff00' : '#ff0000';
 
     let message = this.add.text(400, 200, endText, {
-        fontSize: '36px',
-        fill: color,
-        fontStyle: 'bold',
-        stroke: '#000',
-        strokeThickness: 4
+      fontSize: '36px',
+      fill: color,
+      fontStyle: 'bold',
+      stroke: '#000',
+      strokeThickness: 4
     }).setOrigin(0.5);
 
     // "Next Game" button
-        this.nextButton = this.add.text(400, 450, "Další hra", {
-        fontSize: '28px',
-        fill: '#fff',
-        backgroundColor: '#228B22', // green background
-        padding: { x: 20, y: 10 },
-        fontStyle: 'bold',
-        stroke: '#004400',
-        strokeThickness: 3
+    this.nextButton = this.add.text(400, 450, "Další hra", {
+      fontSize: '28px',
+      fill: '#fff',
+      backgroundColor: '#228B22', // green background
+      padding: { x: 20, y: 10 },
+      fontStyle: 'bold',
+      stroke: '#004400',
+      strokeThickness: 3
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
     this.nextButton.on('pointerover', () => {
-        this.nextButton.setStyle({ backgroundColor: '#2ecc71' });
+      this.nextButton.setStyle({ backgroundColor: '#2ecc71' });
     });
 
     this.nextButton.on('pointerout', () => {
-        this.nextButton.setStyle({ backgroundColor: '#228B22' });
+      this.nextButton.setStyle({ backgroundColor: '#228B22' });
     });
 
     this.nextButton.on('pointerdown', () => {
-        window.location.href = 'messengerGame.html'; // Change to your target HTML file
+      if (localStorage.getItem('playerScore') !== null) {
+        // It exists
+        let current = parseInt(localStorage.getItem('playerScore'));
+        localStorage.setItem('playerScore', current + this.score);
+        console.log("Current points:", current + this.score);
+      } else {
+        // It does not exist yet
+        console.log("No points stored yet.");
+        localStorage.setItem('playerScore', this.score); // Optionally initialize it
+      }
+
+      window.location.href = 'messengerGame.html'; // Change to your target HTML file
     });
-}
+  }
 
 }
 

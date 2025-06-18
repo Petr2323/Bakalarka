@@ -328,6 +328,17 @@ class EmailGameScene extends Phaser.Scene {
                 this.nextGameButton.destroy();
                 this.nextGameButton = null;
 
+                if (localStorage.getItem('playerScore') !== null) {
+                    // It exists
+                    let current = parseInt(localStorage.getItem('playerScore'));
+                    localStorage.setItem('playerScore', current + score);
+                    console.log("Current points:", current + score);
+                } else {
+                    // It does not exist yet
+                    console.log("No points stored yet.");
+                    localStorage.setItem('playerScore', score); // Optionally initialize it
+                }
+
                 if (this.roundCount >= 2) {
                     // Switch to endless runner scene after 2 rounds
                     window.location.href = 'endlessRunner.html';
