@@ -229,17 +229,28 @@ class QuizFightScene extends Phaser.Scene {
       borderRadius: 12,
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
+    // Add a variable to store the warning text
+    this.characterWarningText = null;
+
     this.startButton.on('pointerdown', () => {
       if (!this.selectedCharacter) {
-        // Require character selection first
-        this.add.text(400, 430, "Vyber si postavu před začátkem!", {
-          fontSize: '20px',
-          fill: '#ffaaaa',
-          fontStyle: 'bold',
-          stroke: '#000000',
-          strokeThickness: 2
-        }).setOrigin(0.5).setDepth(10);
+        // If warning doesn't exist yet, show it
+        if (!this.characterWarningText) {
+          this.characterWarningText = this.add.text(400, 430, "Vyber si postavu před začátkem!", {
+            fontSize: '20px',
+            fill: '#ffaaaa',
+            fontStyle: 'bold',
+            stroke: '#000000',
+            strokeThickness: 2
+          }).setOrigin(0.5).setDepth(10);
+        }
         return;
+      }
+
+      // ✅ Destroy warning text if it exists
+      if (this.characterWarningText) {
+        this.characterWarningText.destroy();
+        this.characterWarningText = null;
       }
 
       this.overlay.destroy();
@@ -252,6 +263,7 @@ class QuizFightScene extends Phaser.Scene {
 
       this.startGame();
     });
+
   }
 
 
@@ -616,7 +628,7 @@ class QuizFightScene extends Phaser.Scene {
     }).setOrigin(0.5);
 
     // Add restart button
-    let nextGameButton = this.add.text(400, 380, "Další hra", {
+    let restartButton = this.add.text(400, 380, "Restartovat", {
       fontSize: '28px',
       fill: '#fff',
       backgroundColor: '#4444aa',
@@ -627,8 +639,10 @@ class QuizFightScene extends Phaser.Scene {
       borderRadius: 8,
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
-    nextGameButton.on('pointerdown', () => {
-      window.location.href = 'messengerGame.html';
+    restartButton.on('pointerdown', () => {
+      message.destroy();
+      restartButton.destroy();
+      this.startGame();
     });
   }
 }
