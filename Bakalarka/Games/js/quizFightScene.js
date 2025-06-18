@@ -601,6 +601,8 @@ class QuizFightScene extends Phaser.Scene {
   }
 
   endGame(playerWon) {
+    this.input.enabled = true;
+
     this.timerText.setText('');
     this.questionText && this.questionText.destroy();
     this.options.forEach(opt => opt && opt.destroy());
