@@ -183,17 +183,17 @@ class RunnerGameScene extends Phaser.Scene {
 
   switchLane(dir) {
     if (!this.gameStarted || this.isFrozen) return; // 🚫 prevent movement if frozen
-  
+
     let newLane = this.currentLane + dir;
     if (newLane >= 0 && newLane < this.lanes.length) {
       this.currentLane = newLane;
       this.player.x = this.lanes[this.currentLane];
-  
+
       // Flip character based on direction
       this.player.setFlipX(dir < 0);
     }
   }
-  
+
 
   getUniquePassword(strength) {
     let pool;
@@ -215,44 +215,44 @@ class RunnerGameScene extends Phaser.Scene {
 
   spawnPasswords() {
     if (this.wordsPassed >= this.totalWords) return;
-  
+
     // Vyber náhodná hesla, která se nesmí opakovat
     const weak = this.getUniquePassword('weak');
     const medium = this.getUniquePassword('medium');
     const strong = this.getUniquePassword('strong');
-  
+
     const passwordSet = [
       { text: weak, strength: 'weak' },
       { text: medium, strength: 'medium' },
       { text: strong, strength: 'strong' }
     ];
     Phaser.Utils.Array.Shuffle(passwordSet);
-  
+
     this.activeTweens = []; // 🟩 Store tweens for pausing/resuming
-  
+
     for (let i = 0; i < 3; i++) {
       const { text, strength } = passwordSet[i];
       const isCorrect = (strength === 'strong');
-  
+
       const container = this.add.container(this.lanes[i], 0);
       container.setSize(160, 40);
-  
+
       const rect = this.add.rectangle(0, 0, 160, 40, 0x222222)
         .setStrokeStyle(3, 0xffffff)
         .setOrigin(0.5);
-  
+
       const label = this.add.text(0, 0, text, {
         fontSize: '18px',
         color: '#fff',
         align: 'center',
         wordWrap: { width: 150 }
       }).setOrigin(0.5);
-  
+
       container.add([rect, label]);
       container.isCorrect = isCorrect;
-  
+
       this.passwordsGroup.add(container);
-  
+
       // 🟩 Tween for falling animation
       const tween = this.tweens.add({
         targets: container,
@@ -269,34 +269,34 @@ class RunnerGameScene extends Phaser.Scene {
           }
         }
       });
-  
+
       this.activeTweens.push(tween); // 🟩 Store tween reference
     }
-  
+
     this.collisionHandled = false; // reset kolize flagy
   }
-  
+
 
   freezeOnWrongAnswer() {
     this.isFrozen = true;
     this.player.setFrame(this.wrongFrame);
-  
+
     // ✅ Pause falling tweens
     this.activeTweens.forEach(tween => tween.pause());
-  
+
     this.time.delayedCall(2000, () => {
       this.isFrozen = false;
       this.player.setFrame(this.originalFrame);
-  
+
       // ✅ Resume falling tweens
       this.activeTweens.forEach(tween => tween.resume());
-  
+
       // ❗ Disable password interactions for 4 more seconds
       this.passwordsFrozenUntil = this.time.now + 4000;
     });
   }
-  
-  
+
+
 
   update() {
     if (this.gameStarted) {
@@ -362,17 +362,36 @@ class RunnerGameScene extends Phaser.Scene {
 
     const endMessage = `🎉 Konec hry!\nTvé herní skóre: ${this.score}/${this.totalWords}.\nZískané body: ${finalPoints}/3.`;
 
-    this.endBackground = this.add.rectangle(300, 280, 480, 140, 0x000000, 0.7)
+    this.endBackground = this.add.rectangle(280, 280, 480, 200, 0x000000, 0.7)
       .setOrigin(0.5)
       .setDepth(1);
 
-    this.add.text(300, 280, endMessage, {
+    this.add.text(300, 240, endMessage, {
       fontSize: '24px',
       fill: '#ffffff',
       align: 'center',
       wordWrap: { width: 460 }
     }).setOrigin(0.5).setDepth(2);
+
+    // Add "Další hra" button below message
+    this.nextGameButton = this.add.text(300, 350, "Další hra", {
+      fontSize: '28px',
+      backgroundColor: '#007700',
+      padding: { x: 20, y: 10 },
+      fill: '#fff',
+      fontStyle: 'bold',
+      align: 'center',
+      cursor: 'pointer'
+    }).setOrigin(0.5).setDepth(2).setInteractive();
+
+    this.nextGameButton.on('pointerover', () => this.nextGameButton.setStyle({ backgroundColor: '#00aa00' }));
+    this.nextGameButton.on('pointerout', () => this.nextGameButton.setStyle({ backgroundColor: '#007700' }));
+
+    this.nextGameButton.on('pointerdown', () => {
+      window.location.href = 'dragDrop.html';
+    });
   }
+
 
 }
 

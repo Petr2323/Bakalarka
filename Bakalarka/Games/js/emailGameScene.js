@@ -1,6 +1,9 @@
 class EmailGameScene extends Phaser.Scene {
     constructor() {
         super({ key: 'EmailGameScene' });
+        this.roundCount = 0;        // to count played rounds
+        this.submitButton = null;   // keep reference to submit button
+        this.nextGameButton = null; // reference for "Další hra" button
 
         // Array of emails, each with text and suspicious parts
         this.emails = [
@@ -207,7 +210,7 @@ class EmailGameScene extends Phaser.Scene {
         this.createEmailPart('title', this.currentEmail.title, emailX + 20, emailY + 90, emailWidth - 40, 50);
         this.createEmailPart('body', this.currentEmail.body, emailX + 20, emailY + 160, emailWidth - 40, 160);
 
-        const submitButton = this.add.text(emailX + 20, emailY + emailHeight + 25, "✅ Submit", {
+        this.submitButton = this.add.text(emailX + 10, emailY + emailHeight + 25, "✅ Potvrdit", {
             fontSize: '28px',
             backgroundColor: '#7b68ee',
             color: '#f0e6ff',
@@ -218,9 +221,9 @@ class EmailGameScene extends Phaser.Scene {
             shadow: { offsetX: 2, offsetY: 2, color: '#2b1f54', blur: 3 }
         }).setInteractive({ useHandCursor: true });
 
-        submitButton.on('pointerover', () => submitButton.setStyle({ backgroundColor: '#9a7eea', color: '#ffffff' }));
-        submitButton.on('pointerout', () => submitButton.setStyle({ backgroundColor: '#7b68ee', color: '#f0e6ff' }));
-        submitButton.on('pointerdown', () => this.checkSelections());
+        this.submitButton.on('pointerover', () => submitButton.setStyle({ backgroundColor: '#9a7eea', color: '#ffffff' }));
+        this.submitButton.on('pointerout', () => submitButton.setStyle({ backgroundColor: '#7b68ee', color: '#f0e6ff' }));
+        this.submitButton.on('pointerdown', () => this.checkSelections());
 
         this.feedbackText = this.add.text(emailX + 250, emailY + emailHeight + 35, '', {
             fontSize: '24px',
@@ -259,7 +262,7 @@ class EmailGameScene extends Phaser.Scene {
             borderRect.setStrokeStyle(3, 0x6441a5);
         } else {
             this.suspiciousSelections.push(part);
-            borderRect.setStrokeStyle(4, 0xffa500);
+            borderRect.setStrokeStyle(4, 0x00ffff);
         }
     }
 
@@ -288,12 +291,88 @@ class EmailGameScene extends Phaser.Scene {
             } else {
                 border.setStrokeStyle(3, 0x6441a5);
             }
+
+            border.disableInteractive();
+
         }
 
-        this.feedbackText.setText(`Získal si ${score}/${maxScore} bodů.`);
+        this.feedbackText.setText(`Získal/a si ${score}/${maxScore} bodů.`);
         this.feedbackText.setColor(score === maxScore ? '#00ff00' : '#ffcc00');
         this.feedbackText.setShadow(2, 2, '#000000', 3, true, true);
+
+        // Disable submit button
+        this.submitButton.disableInteractive();
+        this.submitButton.setAlpha(0.5);  // visually dim it
+
+        // Create Další hra button only if it doesn't exist yet
+        if (!this.nextGameButton) {
+            const btnX = this.submitButton.x;
+            const btnY = this.submitButton.y + this.submitButton.height + 15;
+
+            this.nextGameButton = this.add.text(btnX, btnY, "Další hra", {
+                fontSize: '28px',
+                backgroundColor: '#5a4dcf',
+                color: '#f0e6ff',
+                padding: { x: 20, y: 12 },
+                fontStyle: 'bold',
+                stroke: '#3a2c8d',
+                strokeThickness: 4,
+                shadow: { offsetX: 2, offsetY: 2, color: '#2b1f54', blur: 3 }
+            }).setInteractive({ useHandCursor: true });
+
+            this.nextGameButton.on('pointerover', () => this.nextGameButton.setStyle({ backgroundColor: '#7b68ee', color: '#ffffff' }));
+            this.nextGameButton.on('pointerout', () => this.nextGameButton.setStyle({ backgroundColor: '#5a4dcf', color: '#f0e6ff' }));
+
+            this.nextGameButton.on('pointerdown', () => {
+                this.roundCount++;
+                this.nextGameButton.destroy();
+                this.nextGameButton = null;
+
+                if (this.roundCount >= 2) {
+                    // Switch to endless runner scene after 2 rounds
+                    window.location.href = 'endlessRunner.html';
+                } else {
+                    // Restart game with a different email
+                    this.restartGame();
+                }
+            });
+        }
     }
+
+    restartGame() {
+        // Clear old email text and borders
+        for (const key in this.textElements) {
+            this.textElements[key].text.destroy();
+            this.textElements[key].border.destroy();
+        }
+        this.textElements = {};
+        this.suspiciousSelections = [];
+        this.feedbackText.setText('');
+    
+        // Enable submit button again
+        this.submitButton.setInteractive({ useHandCursor: true });
+        this.submitButton.setAlpha(1);
+    
+        // Pick a new email different from current one
+        let newEmail;
+        do {
+            newEmail = Phaser.Utils.Array.GetRandom(this.emails);
+        } while (newEmail === this.currentEmail);
+    
+        this.currentEmail = newEmail;
+        this.correctSuspicious = new Set(this.currentEmail.suspicious);
+    
+        // Create email parts for new email
+        const emailX = 50;
+        const emailY = 60;
+        const emailWidth = 800;
+        const emailHeight = 320;
+    
+        this.createEmailPart('sender', this.currentEmail.sender, emailX + 20, emailY + 20, emailWidth - 40, 50);
+        this.createEmailPart('title', this.currentEmail.title, emailX + 20, emailY + 90, emailWidth - 40, 50);
+        this.createEmailPart('body', this.currentEmail.body, emailX + 20, emailY + 160, emailWidth - 40, 160);
+    }
+    
 
     createLegend(baseX, baseY) {
         const legendX = baseX + 100;
