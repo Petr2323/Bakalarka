@@ -50,6 +50,10 @@
         <button onclick="location.href='tutorial.html'">Tutorial</button>
         <button onclick="location.href='results.html'">Hodnocení</button>
     </div>
+
+    <script>
+        if (localStorage.getItem('playerScore') !== null) localStorage.removeItem('playerScore');
+    </script>
 </body>
 
 </html>

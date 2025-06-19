@@ -11,13 +11,20 @@ class EmailGameScene extends Phaser.Scene {
                 sender: "Od: podpora@sesnam.cz",
                 title: "Předmět: POZOR!!! Vaše účty budou zablokovány!!!!!!!",
                 body: "Dobrý den,\n\nProsíme vás o zkontrolování údajů ve vašem účtu. \n\nDěkujeme, podpora týmu Seznam.",
-                suspicious: ['sender', 'title']
+                suspicious: ['sender', 'title'],
+                suspiciousReasons: {
+                    sender: 'sesnam.cz namísto seznam.cz',
+                    title: 'Zastrašující předmět má přimět k rychlé reakci.'
+                }
             },
             {
                 sender: "Od: info@vasebanka.cz",
                 title: "Předmět: Nutná kontrola vašeho bankovního účtu",
                 body: "Vážený zákasníku,\n\nVaše banka zjistil podezřelé transaktion, proto zvás prosíme o zadání važih přihlašovacích údajú v odpovědi na tuto správu.\n\nVďaka",
-                suspicious: ['body']
+                suspicious: ['body'],
+                suspiciousReasons: {
+                    body: 'Hodně chyb v textu a zaslání citlivých informací e-mailem.'
+                }
             },
             {
                 sender: "Od: pepa.novy@seznam.cz",
@@ -29,19 +36,32 @@ class EmailGameScene extends Phaser.Scene {
                 sender: "Od: reditel@hluboka150.ru",
                 title: "Předmět: ZmĚNA!! Výlet se zdraží!!!!",
                 body: "Dobrý den žáci,\n\n Zítřejší výlet se nečekaně zdražil, potřebuji abyste poslali 250Kč na účet 256987456/2010 s VS 1256 a v poznámce napsali Vaše jméno - výlet. Omlouvám se za vzniklé potíže. \n\n S pozdravem, ředitel",
-                suspicious: ['sender', 'title', 'body']
+                suspicious: ['sender', 'title', 'body'],
+                suspiciousReasons: {
+                    sender: 'Ředitel české školy nebude mít školní email s .ru(Rusko)',
+                    title: 'Zastrašující a podezřele vypadající předmět má přimět k rychlé reakci.',
+                    body: 'Naléhavost a posílání peněz z údajů v e-mailu je podezřelé.'
+                }
             },
             {
                 sender: "Od: podpora@seznam.cz",
-                title: "Předmět: URGENTNÍ! Odpovězte rychle",
+                title: "Předmět: URGENTNÍ! Odpovězte RYCHLE!!",
                 body: "Vážený uživateli,\n\nNa vašem účtu byla zaznamenána neobvyklá aktivita. Pokud jste to nebyl vy, kontaktujte nás.",
-                suspicious: ['title']
+                suspicious: ['title'],
+                suspiciousReasons: {
+                    title: 'Zastrašující předmět má přimět k rychlé reakci.'
+                }
             },
             {
                 sender: "Od: alenka.zvonkova@xyz.cz",
                 title: "Předmět: Gratulujeme! Vyhráli jste!",
-                body: "Váš účet je náhodně vybrán k výhře peněz. Napište nám číslo vašeho účtu, abychom Vám peníze mohli poslat.",
-                suspicious: ['sender', 'body', 'title']
+                body: "Váš účet je náhodně vybrán k výhře peněz. Napište nám číslo vašeho účtu a telefonní číslo, abychom Vám peníze mohli poslat.",
+                suspicious: ['sender', 'body', 'title'],
+                suspiciousReasons: {
+                    sender: 'xyz.cz je podezřelá vlastní adresa.',
+                    title: 'Předmět Vás má nalákat.',
+                    body: 'Neposílat podezřelé osobě Vaše osobní údaje.'
+                }
             },
             {
                 sender: "Od: podpora@firma.cz",
@@ -53,19 +73,29 @@ class EmailGameScene extends Phaser.Scene {
                 sender: "Od: ucetni@firma.cs",
                 title: "Předmět: Vaše faktura je připravena",
                 body: "Dobrý den,\n\nVaše faktura za provedenou práci je k dispozici v příloze.",
-                suspicious: ['sender']
+                suspicious: ['sender'],
+                suspiciousReasons: {
+                    sender: 'Falešná adresa – používá .cs namísto .cz'
+                }
             },
             {
                 sender: "Od: podpora@firma.cz",
                 title: "Předmět: Váš účet byl deaktivován",
                 body: "Váš účet byl dočasně deaktivován kvůli podezřelé aktivitě. Klikněte na odkaz a ověřte si to. https://www.f1rma.net\n\n Děkujeme za pochopení, vaše Firma",
-                suspicious: ['body']
+                suspicious: ['body'],
+                suspiciousReasons: {
+                    body: 'Odkaz je podezřelý, neklikat.'
+                }
             },
             {
                 sender: "Od: info@seznam.cs",
                 title: "Předmět: Důležitá aktualizace účtu",
                 body: "Vážený uživateli,\n\nProsíme vás o potvrzení vašich údajů prostřednictvím odkazu níže.\n\n https://www.seznan.cz/ucet",
-                suspicious: ['sender', 'body']
+                suspicious: ['sender', 'body'],
+                suspiciousReasons: {
+                    sender: 'Falešná adresa – .cs namísto .cz',
+                    body: 'Neklikat na podezřelý odkaz.'
+                }
             }
         ];
     }
@@ -75,6 +105,12 @@ class EmailGameScene extends Phaser.Scene {
     create() {
         // Show tutorial overlay first
         this.showTutorial();
+        this.usedEmails = [];
+        this.round = 1;
+        this.score = 0;
+        this.currentEmail = Phaser.Utils.Array.GetRandom(this.emails.filter(e => !this.usedEmails.includes(e)));
+        this.usedEmails.push(this.currentEmail);
+
     }
 
     showTutorial() {
@@ -221,8 +257,8 @@ class EmailGameScene extends Phaser.Scene {
             shadow: { offsetX: 2, offsetY: 2, color: '#2b1f54', blur: 3 }
         }).setInteractive({ useHandCursor: true });
 
-        this.submitButton.on('pointerover', () => submitButton.setStyle({ backgroundColor: '#9a7eea', color: '#ffffff' }));
-        this.submitButton.on('pointerout', () => submitButton.setStyle({ backgroundColor: '#7b68ee', color: '#f0e6ff' }));
+        this.submitButton.on('pointerover', () => this.submitButton.setStyle({ backgroundColor: '#9a7eea', color: '#ffffff' }));
+        this.submitButton.on('pointerout', () => this.submitButton.setStyle({ backgroundColor: '#7b68ee', color: '#f0e6ff' }));
         this.submitButton.on('pointerdown', () => this.checkSelections());
 
         this.feedbackText = this.add.text(emailX + 250, emailY + emailHeight + 35, '', {
@@ -253,6 +289,10 @@ class EmailGameScene extends Phaser.Scene {
 
         border.on('pointerdown', () => this.toggleSelection(key, border));
         this.textElements[key] = { text, border };
+
+        // 👇 Fix: Add this line to store parts
+        /*if (!this.emailParts) this.emailParts = [];
+        this.emailParts.push(border);*/
     }
 
     toggleSelection(part, borderRect) {
@@ -266,89 +306,172 @@ class EmailGameScene extends Phaser.Scene {
         }
     }
 
-    checkSelections() {
-        const correct = new Set(this.correctSuspicious);
-        const selected = new Set(this.suspiciousSelections);
+    showFeedbackWindow(feedbackText, scoreEarned) {
+        const width = 500;
+        const height = 300;
 
-        let score = 0;
-        const maxScore = 3;
-
-        for (let key in this.textElements) {
-            const { border } = this.textElements[key];
-            const isSuspicious = correct.has(key);
-            const isSelected = selected.has(key);
-
-            if (isSuspicious && isSelected) {
-                border.setStrokeStyle(4, 0x00ff00);
-                score++;
-            } else if (!isSuspicious && !isSelected) {
-                border.setStrokeStyle(4, 0x00ff00);
-                score++;
-            } else if (!isSuspicious && isSelected) {
-                border.setStrokeStyle(4, 0x0000ff);
-            } else if (isSuspicious && !isSelected) {
-                border.setStrokeStyle(4, 0xffff00);
-            } else {
-                border.setStrokeStyle(3, 0x6441a5);
-            }
-
-            border.disableInteractive();
-
+        // If already exists, destroy previous
+        if (this.feedbackContainer) {
+            this.feedbackContainer.destroy();
         }
 
-        this.feedbackText.setText(`Získal/a si ${score}/${maxScore} bodů.`);
-        this.feedbackText.setColor(score === maxScore ? '#00ff00' : '#ffcc00');
-        this.feedbackText.setShadow(2, 2, '#000000', 3, true, true);
+        this.feedbackContainer = this.add.container(100, 100);
 
-        // Disable submit button
-        this.submitButton.disableInteractive();
-        this.submitButton.setAlpha(0.5);  // visually dim it
+        const bg = this.add.rectangle(0, 0, width, height, 0x000000, 0.7)
+            .setOrigin(0)
+            .setStrokeStyle(2, 0xffffff);
 
-        // Create Další hra button only if it doesn't exist yet
-        if (!this.nextGameButton) {
-            const btnX = this.submitButton.x;
-            const btnY = this.submitButton.y + this.submitButton.height + 15;
+        const text = this.add.text(20, 20, feedbackText + `\n\nZískal/a jsi ${scoreEarned}/3 bodů.`, {
+            font: '16px Arial',
+            fill: '#fff',
+            wordWrap: { width: 460 }
+        });
 
-            this.nextGameButton = this.add.text(btnX, btnY, "Další hra", {
-                fontSize: '28px',
-                backgroundColor: '#5a4dcf',
-                color: '#f0e6ff',
-                padding: { x: 20, y: 12 },
-                fontStyle: 'bold',
-                stroke: '#3a2c8d',
-                strokeThickness: 4,
-                shadow: { offsetX: 2, offsetY: 2, color: '#2b1f54', blur: 3 }
-            }).setInteractive({ useHandCursor: true });
+        const okButton = this.add.text(width / 2, height - 40, 'OK', {
+            font: '20px Arial',
+            fill: '#ffffff',
+            backgroundColor: '#007bff',
+            padding: { x: 10, y: 5 }
+        })
+            .setOrigin(0.5)
+            .setInteractive({ useHandCursor: true })
+            .on('pointerdown', () => {
+                this.feedbackContainer.setVisible(false);
 
-            this.nextGameButton.on('pointerover', () => this.nextGameButton.setStyle({ backgroundColor: '#7b68ee', color: '#ffffff' }));
-            this.nextGameButton.on('pointerout', () => this.nextGameButton.setStyle({ backgroundColor: '#5a4dcf', color: '#f0e6ff' }));
+                // Disable further interaction for submit and email parts
+                this.submitButton.disableInteractive();
+                Object.values(this.textElements).forEach(part => part.border.disableInteractive());
 
-            this.nextGameButton.on('pointerdown', () => {
-                this.roundCount++;
-                this.nextGameButton.destroy();
-                this.nextGameButton = null;
-
-                if (localStorage.getItem('playerScore') !== null) {
-                    // It exists
-                    let current = parseInt(localStorage.getItem('playerScore'));
-                    localStorage.setItem('playerScore', current + score);
-                    console.log("Current points:", current + score);
-                } else {
-                    // It does not exist yet
-                    console.log("No points stored yet.");
-                    localStorage.setItem('playerScore', score); // Optionally initialize it
-                }
-
-                if (this.roundCount >= 2) {
-                    // Switch to endless runner scene after 2 rounds
-                    window.location.href = 'endlessRunner.html';
-                } else {
-                    // Restart game with a different email
-                    this.restartGame();
-                }
+                // Show next game button
+                this.showNextGameButton();
             });
-        }
+
+        this.feedbackContainer.add([bg, text, okButton]);
     }
+
+
+
+
+    checkSelections() {
+        const email = this.currentEmail;
+        const selected = this.suspiciousSelections;
+        const correctSelections = email.suspicious;
+        const currentReasons = email.suspiciousReasons || {};
+
+        let feedback = '';
+        let score = 3;
+
+        correctSelections.forEach(part => {
+            if (selected.includes(part)) {
+                feedback += `✔️ ${part}: ${currentReasons[part] || 'Správně označeno.'}\n`;
+            } else {
+                feedback += `❌ ${part} měl být označen! ${currentReasons[part] || ''}\n`;
+                score--;
+            }
+        });
+
+        selected.forEach(part => {
+            if (!correctSelections.includes(part)) {
+                feedback += `❌ ${part} neměl být označen.\n`;
+                score--;
+            }
+        });
+
+        score = Math.max(0, score);
+        this.score += score;
+
+        this.showFeedbackWindow(feedback, score);
+    }
+
+    loadNextEmail() {
+        this.suspiciousSelections = [];
+    
+        const remainingEmails = this.emails.filter(e => !this.usedEmails.includes(e));
+        if (remainingEmails.length === 0) return;
+    
+        // 👇 Destroy old text + borders
+        for (const key in this.textElements) {
+            this.textElements[key].text.destroy();
+            this.textElements[key].border.destroy();
+        }
+        this.textElements = {};
+        this.emailParts = [];
+    
+        this.submitButton.destroy();
+        if (this.feedbackContainer) this.feedbackContainer.destroy();
+    
+        this.currentEmail = Phaser.Utils.Array.GetRandom(remainingEmails);
+        this.usedEmails.push(this.currentEmail);
+    
+        const emailX = 50;
+        const emailY = 60;
+        const emailWidth = 800;
+    
+        this.createEmailPart('sender', this.currentEmail.sender, emailX + 20, emailY + 20, emailWidth - 40, 50);
+        this.createEmailPart('title', this.currentEmail.title, emailX + 20, emailY + 90, emailWidth - 40, 50);
+        this.createEmailPart('body', this.currentEmail.body, emailX + 20, emailY + 160, emailWidth - 40, 160);
+    
+        // Re-create submit button
+        this.submitButton = this.add.text(emailX + 10, emailY + 320 + 25, "✅ Potvrdit", {
+            fontSize: '28px',
+            backgroundColor: '#7b68ee',
+            color: '#f0e6ff',
+            padding: { x: 20, y: 12 },
+            fontStyle: 'bold',
+            stroke: '#4b367c',
+            strokeThickness: 5,
+            shadow: { offsetX: 2, offsetY: 2, color: '#2b1f54', blur: 3 }
+        }).setInteractive({ useHandCursor: true });
+    
+        this.submitButton.on('pointerover', () => this.submitButton.setStyle({ backgroundColor: '#9a7eea', color: '#ffffff' }));
+        this.submitButton.on('pointerout', () => this.submitButton.setStyle({ backgroundColor: '#7b68ee', color: '#f0e6ff' }));
+        this.submitButton.on('pointerdown', () => this.checkSelections());
+    }
+    
+
+
+    showNextGameButton() {
+        if (this.nextGameButton) {
+            this.nextGameButton.destroy(); // Remove previous if any
+        }
+
+        this.nextGameButton = this.add.text(450, 550, 'Další hra', {
+            font: '24px Arial',
+            fill: '#fff',
+            backgroundColor: '#28a745',
+            padding: { x: 10, y: 5 }
+        }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setDepth(10);
+
+
+        this.nextGameButton.on('pointerdown', () => {
+            // Save score to localStorage
+            if (localStorage.getItem('playerScore') !== null) {
+                // It exists
+                let current = parseInt(localStorage.getItem('playerScore'));
+                localStorage.setItem('playerScore', current + this.score);
+                console.log("Current points:", current + this.score);
+            } else {
+                // It does not exist yet
+                console.log("No points stored yet.");
+                localStorage.setItem('playerScore', this.score); // Optionally initialize it
+            }
+            
+            this.score = 0;
+
+            if (this.round < 2) {
+                this.round++;
+                this.submitButton.setInteractive({ useHandCursor: true });
+                Object.values(this.textElements).forEach(part => part.border.setInteractive({ useHandCursor: true }));
+                this.nextGameButton.destroy();
+                this.loadNextEmail();
+            } else {
+                // Redirect to next game HTML
+                window.location.href = 'endlessRunner.html';
+            }
+        });
+    }
+
+
 
     restartGame() {
         // Clear old email text and borders
@@ -359,31 +482,35 @@ class EmailGameScene extends Phaser.Scene {
         this.textElements = {};
         this.suspiciousSelections = [];
         this.feedbackText.setText('');
-    
+
+        this.reasonTexts.forEach(t => t.destroy());
+        this.reasonTexts = [];
+
+
         // Enable submit button again
         this.submitButton.setInteractive({ useHandCursor: true });
         this.submitButton.setAlpha(1);
-    
+
         // Pick a new email different from current one
         let newEmail;
         do {
             newEmail = Phaser.Utils.Array.GetRandom(this.emails);
         } while (newEmail === this.currentEmail);
-    
+
         this.currentEmail = newEmail;
         this.correctSuspicious = new Set(this.currentEmail.suspicious);
-    
+
         // Create email parts for new email
         const emailX = 50;
         const emailY = 60;
         const emailWidth = 800;
         const emailHeight = 320;
-    
+
         this.createEmailPart('sender', this.currentEmail.sender, emailX + 20, emailY + 20, emailWidth - 40, 50);
         this.createEmailPart('title', this.currentEmail.title, emailX + 20, emailY + 90, emailWidth - 40, 50);
         this.createEmailPart('body', this.currentEmail.body, emailX + 20, emailY + 160, emailWidth - 40, 160);
     }
-    
+
 
     createLegend(baseX, baseY) {
         const legendX = baseX + 100;
