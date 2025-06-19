@@ -357,31 +357,40 @@ class EmailGameScene extends Phaser.Scene {
         const selected = this.suspiciousSelections;
         const correctSelections = email.suspicious;
         const currentReasons = email.suspiciousReasons || {};
-
+    
         let feedback = '';
         let score = 3;
-
-        correctSelections.forEach(part => {
-            if (selected.includes(part)) {
+    
+        // Highlight all parts with their result
+        ['sender', 'title', 'body'].forEach(part => {
+            const border = this.textElements[part].border;
+            const isSelected = selected.includes(part);
+            const isSuspicious = correctSelections.includes(part);
+    
+            if (isSuspicious && isSelected) {
                 feedback += `✔️ ${part}: ${currentReasons[part] || 'Správně označeno.'}\n`;
-            } else {
+                border.setStrokeStyle(4, 0x00ff00); // Green for correct
+            } else if (isSuspicious && !isSelected) {
                 feedback += `❌ ${part} měl být označen! ${currentReasons[part] || ''}\n`;
+                border.setStrokeStyle(4, 0xffff00); // Yellow for missed suspicious
                 score--;
-            }
-        });
-
-        selected.forEach(part => {
-            if (!correctSelections.includes(part)) {
+            } else if (!isSuspicious && isSelected) {
                 feedback += `❌ ${part} neměl být označen.\n`;
+                border.setStrokeStyle(4, 0xf50505); // Red for incorrect selection
                 score--;
+            } else {
+                // ✅ Correctly not selected and not suspicious
+                border.setStrokeStyle(4, 0x00ff00); // Green for correct non-selection
             }
         });
-
+    
         score = Math.max(0, score);
         this.score += score;
-
+    
         this.showFeedbackWindow(feedback, score);
     }
+    
+    
 
     loadNextEmail() {
         this.suspiciousSelections = [];
@@ -525,7 +534,7 @@ class EmailGameScene extends Phaser.Scene {
 
         const legendItems = [
             { color: 0x00ff00, label: '✔️ Správně' },
-            { color: 0x0000ff, label: '❌ Špatně' },
+            { color: 0xf50505, label: '❌ Špatně' },
             { color: 0xffff00, label: '⚠️ Chybělo označit' },
         ];
 
