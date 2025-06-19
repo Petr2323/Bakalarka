@@ -33,12 +33,14 @@
     }
 
     .grade-img {
-      margin-top: 25px;
+      margin: 25px auto 0 auto;
       max-width: 100%;
       height: auto;
       border-radius: 10px;
       box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      display: block;
     }
+
 
     .start-button {
       display: block;
@@ -83,24 +85,25 @@
     const score = parseInt(localStorage.getItem('totalScore')) || 0;
     document.getElementById('scoreDisplay').textContent = score;
 
-    let grade = '';
+    let gradeSentence = '';
     let imageUrl = '';
 
     if (score >= 16) {
-      grade = 'Výborně (1) – Skvělý výkon!';
-      imageUrl = 'https://media.giphy.com/media/3o7abB06u9bNzA8lu8/giphy.gif';
+      gradeSentence = 'Skvělý výkon! Tvoje výsledky jsou opravdu vynikající a ukazují, že máš výborný základ a jen tak někdo si na tebe nepřijde. Velká gratulace!';
+      imageUrl = 'https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExMGVkZ3o2M2NhM2NpZTl4YTh6cXA2Y2hicG9ucjZmbjZ0ZGsyMW4xYiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/7FyMQm2vBiTjG/giphy.gif';
     } else if (score >= 13) {
-      grade = 'Chvalitebně (2) – Velmi dobré!';
+      gradeSentence = 'Velmi dobré! Dosáhl jsi solidního výsledku a je vidět, že tomu rozumíš. Trocha doladění a můžeš dosáhnout ještě lepších výsledků.';
       imageUrl = 'https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif';
     } else if (score >= 9) {
-      grade = 'Dobře (3) – Dobrá práce, ještě to chce doladit!';
-      imageUrl = 'https://media.giphy.com/media/xT0GqeSlGSRQutAoE8/giphy.gif';
+      gradeSentence = 'Slušný výkon, ještě to chce doladit! Už máš dobrý základ, ale určitě se vyplatí věnovat pozornost detailům a zlepšit některé oblasti.';
+      imageUrl = 'https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExMW11MmNqZ3Z5am9jdm1tdzk0dGR3eGcyMGZtdGE4YWp0N3pva2cwNyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/7ZjmsISzWnreE/giphy.gif';
     } else {
-      grade = 'Nedostatečně (5) – Nevadí, příště to bude lepší!';
-      imageUrl = 'https://media.giphy.com/media/l3q2K5jinAlChoCLS/giphy.gif';
+      gradeSentence = 'Nevadí, příště to bude lepší! Každý začátek je těžký a je důležité nevzdávat se. Uč se dál a příště dosáhneš lepších výsledků!';
+      imageUrl = 'https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExYnUxZWxsa25ydGU2cG1yOTBwc3l0djZld3Nqcm9xY3BlNHdmbWtsdCZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/116a8zosxwA0SI/giphy.gif';
     }
 
-    document.getElementById('gradeDisplay').textContent = `Hodnocení: ${grade}`;
+    document.getElementById('gradeDisplay').textContent = `Hodnocení: ${gradeSentence}`;
+
     const img = document.getElementById('gradeImage');
     img.src = imageUrl;
     img.style.display = 'block';
