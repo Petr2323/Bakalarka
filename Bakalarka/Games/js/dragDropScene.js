@@ -5,7 +5,7 @@ class CybersecurityScene extends Phaser.Scene {
     // Cybersecurity scenarios with 4-5 correct actions in order
     this.scenarios = [
       {
-        title: "Někdo se ti naboural do Google účtu",
+        title: "Někdo se ti naboural do Google účtu",  //good
         actions: [
           "Ihned si změň heslo",
           "Zkontroluj nedávnou aktivitu účtu",
@@ -14,25 +14,25 @@ class CybersecurityScene extends Phaser.Scene {
         ]
       },
       {
-        title: "Počítač ti napadl ransomware",
+        title: "Počítač ti napadl ransomware", //good
         actions: [
           "Odpoj počítač od internetu",
-          "Vyfoť výkupné nebo varovné hlášky",
-          "Zjisti, jestli máš zálohy",
+          "Vyfoť výkupné nebo varovné zprávy",
+          "Zjisti, jestli máš zálohy počítače",
           "Řekni dospělému a kontaktujte odborníky"
         ]
       },
       {
-        title: "Dostal(a) jsi podezřelý e-mail",
+        title: "Dostal(a) jsi podezřelý e-mail",  //good
         actions: [
           "Neklikej na žádné odkazy ani přílohy",
-          "Označ ho jako spam nebo phishing",
           "Zablokuj odesílatele",
+          "Řekni to učiteli nebo rodičům",
           "E-mail smaž"
         ]
       },
       {
-        title: "Tvůj herní účet má podezřelou aktivitu",
+        title: "Tvůj herní účet má podezřelou aktivitu",  //good
         actions: [
           "Změň si heslo na bezpečném zařízení",
           "Odhlásit se ze všech zařízení",
@@ -42,53 +42,52 @@ class CybersecurityScene extends Phaser.Scene {
         ]
       },
       {
-        title: "Na počítači se objevila neznámá aplikace",
+        title: "Na počítači se objevila neznámá aplikace",  //good
         actions: [
           "Neotevírej ji",
-          "Zjisti, kdy se nainstalovala",
           "Spusť antivirovou kontrolu",
           "Odinstaluj podezřelé programy",
           "Aktualizuj bezpečnostní software"
         ]
       },
       {
-        title: "Ztratil(a) jsi mobil",
+        title: "Ztratil(a) jsi mobil",  //good
         actions: [
           "Zkus ho lokalizovat přes účet (např. Google)",
           "Změň hesla ke službám jako e-mail",
           "Informuj rodiče nebo učitele",
-          "Zablokuj SIM kartu přes operátora"
+          "Požádej dospělého, aby pomohl telefon zablokovat"
         ]
       },
       {
-        title: "Dostal(a) jsi výhružnou zprávu na sociálních sítích",
+        title: "Dostal(a) jsi výhružnou zprávu na sociálních sítích",  //good
         actions: [
           "Neodpovídej",
           "Udělej screenshot zprávy",
-          "Nahlas uživatele administrátorům",
-          "Řekni rodičům nebo učiteli"
+          "Zablokuj uživatele",
+          "Nahlas uživatele administrátorům"
         ]
       },
       {
-        title: "Přihlásil(a) ses na falešnou stránku",
+        title: "Přihlásil(a) ses na falešnou stránku školního systému",  //good
         actions: [
           "Okamžitě změň heslo",
           "Odhlásit se ze všech zařízení",
-          "Zkontroluj, co bylo přístupné",
+          "Řekni to učiteli nebo rodičům",
           "Pouč se, jak vypadá správná adresa webu"
         ]
       },
       {
-        title: "Našel(a) jsi USB flash disk ve škole",
+        title: "Našel(a) jsi USB flash disk ve škole",   //good
         actions: [
-          "Nestrkej USB do svého počítače",
-          "Nepokoušej se zjistit, co je na něm",
-          "Odevzdej ho učiteli nebo správci IT",
-          "Vysvětli, proč to může být nebezpečné (např. viry)"
+          "Nezapojuj USB do počítače",
+          "Řekni o tom učiteli nebo správci IT",
+          "USB odevzdej",
+          "Pouč ostatní, proč to může být nebezpečné (např. viry)"
         ]
       },
       {
-        title: "Přítel ti poslal neobvyklou zprávu s odkazem",
+        title: "Přítel ti poslal neobvyklou zprávu s odkazem",  //good
         actions: [
           "Neklikej na odkaz",
           "Zeptej se přítele, jestli to opravdu poslal",
@@ -428,11 +427,11 @@ class CybersecurityScene extends Phaser.Scene {
         let current = parseInt(localStorage.getItem('playerScore'));
         localStorage.setItem('playerScore', current + points);
         console.log("Current points:", current + points);
-    } else {
+      } else {
         // It does not exist yet
         console.log("No points stored yet.");
         localStorage.setItem('playerScore', points); // Optionally initialize it
-    }
+      }
 
       window.location.href = 'quizFight.html';
     });

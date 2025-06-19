@@ -33,7 +33,7 @@ class EmailGameScene extends Phaser.Scene {
                 suspicious: []
             },
             {
-                sender: "Od: reditel@hluboka150.ru",
+                sender: "Od: reditel@skola.ru",
                 title: "Předmět: ZmĚNA!! Výlet se zdraží!!!!",
                 body: "Dobrý den žáci,\n\n Zítřejší výlet se nečekaně zdražil, potřebuji abyste poslali 250Kč na účet 256987456/2010 s VS 1256 a v poznámce napsali Vaše jméno - výlet. Omlouvám se za vzniklé potíže. \n\n S pozdravem, ředitel",
                 suspicious: ['sender', 'title', 'body'],

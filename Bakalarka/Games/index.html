@@ -1,59 +1,72 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="cs">
 
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Cybersecurity Games</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin: 50px;
-        }
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Kyberbezpečnostní hry</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      background-color: #f2f2f2;
+      color: #333;
+      max-width: 800px;
+      margin: auto;
+      text-align: center;
+    }
 
-        .menu {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-        }
+    h1 {
+      color: #0073e6;
+    }
 
-        .menu button {
-            padding: 15px 30px;
-            font-size: 18px;
-            cursor: pointer;
-            border: none;
-            background-color: #007BFF;
-            color: white;
-            border-radius: 10px;
-            transition: 0.3s;
-        }
+    .intro {
+      font-size: 18px;
+      margin: 20px 0 30px;
+    }
 
-        .menu button:hover {
-            background-color: #0056b3;
-        }
-    </style>
-    <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.0/dist/phaser.min.js"></script>
+    .menu {
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      align-items: center;
+    }
 
+    .menu button {
+      padding: 12px 30px;
+      font-size: 18px;
+      background-color: #007BFF;
+      color: white;
+      border: none;
+      border-radius: 8px;
+      cursor: pointer;
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      transition: background-color 0.3s ease, transform 0.2s ease;
+    }
+
+    .menu button:hover {
+      background-color: #0056b3;
+      transform: scale(1.05);
+    }
+  </style>
 </head>
 
 <body>
-    <h1>Cybersecurity Games</h1>
-    <div class="menu">
-        <button onclick="location.href='emailGame.html'">Email Phishing Game</button>
-        <button onclick="location.href='endlessRunner.html'">3D Endless Runner</button>
-        <button onclick="location.href='dragDrop.html'">Drag & Drop Game</button>
-        <button onclick="location.href='quizFight.html'">Turn-Based Quiz Fight</button>
-        <button onclick="location.href='messengerGame.html'">Messenger Game</button>
-        <button onclick="location.href='linkGame.html'">Link Game</button>
-        <button onclick="location.href='tutorial.html'">Tutorial</button>
-        <button onclick="location.href='results.html'">Hodnocení</button>
-    </div>
 
-    <script>
-        if (localStorage.getItem('playerScore') !== null) localStorage.removeItem('playerScore');
-    </script>
+  <h1>Kyberbezpečnostní hry</h1>
+  <p class="intro">
+    Než začneš hrát, doporučuji si nejprve přečíst sekci <strong>Nápověda</strong>, kde najdeš důležité informace ke hře.
+  </p>
+
+  <div class="menu">
+    <button onclick="location.href='emailGame.html'">🎮 Začni hrát</button>
+    <button onclick="location.href='tutorial.html'">📘 Nápověda</button>
+  </div>
+
+  <script>
+    if (localStorage.getItem('playerScore') !== null) localStorage.removeItem('playerScore');
+  </script>
+
 </body>
 
 </html>

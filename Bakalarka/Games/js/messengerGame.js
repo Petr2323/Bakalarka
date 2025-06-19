@@ -96,7 +96,7 @@ class ChatScene extends Phaser.Scene {
                     ]
                 },
                 tree1_end: {
-                    friend: "Díky za pomoc, my champ 🏅",
+                    friend: "Díky za pomoc, kámo 🏅",
                     responses: [],
                     end: true
                 },
@@ -112,30 +112,47 @@ class ChatScene extends Phaser.Scene {
                     friend: "Kámo, koukni na tohle video! 📺 https://www.youtube.com/watch?v=dQw4w9WgXcQ",
                     responses: [
                         { text: "Ok, podívám se 🎬", next: "tree2_correct1", points: 1 },
-                        { text: "Nevím, radši nekliku na odkazy. 😬", next: "tree2_safe" }
+                        { text: "Nevím, radši nekliknu na odkaz. 😬", next: "tree2_safe" }
                     ]
                 },
                 tree2_correct1: {
                     friend: "Vím že je to starý, ale pořád dobrý 😂",
                     responses: [
-                        { text: "Dostal si mě 🤣", next: "tree2_end", points: 1 },
-                        { text: "Máš ještě nějaký vtípek? 🤣", next: "tree2_end", points: 1 }
+                        { text: "RickRolled. Dostal si mě 🤣", next: "tree2_correct2", points: 1 },
+                        { text: "RickRolled. Máš ještě nějaký vtípek? 🤣", next: "tree2_correct2", points: 1 }
+                    ]
+                },
+                tree2_correct2: {
+                    friend: "Máš něco pro mě na zasmání?",
+                    responses: [
+                        { text: "*poslat odkaz na stránku s matematickými příklady", next: "tree2_endSad", points: 1},
+                        { text: "*poslat srandovní video", next: "tree2_end", points: 1 }
                     ]
                 },
                 tree2_safe: {
                     friend: "No tak, podívej se, věř mi, tohle je fakt jen sranda. 😄",
                     responses: [
-                        { text: "Tak jo, kliknu teda. 🎬", next: "tree2_end", points: 1 },
+                        { text: "Tak jo, kliknu teda. 🎬", next: "tree2_endRolled", points: 1 },
                         { text: "I tak nechci riskovat. 🙅", next: "tree2_endBad" }
                     ]
                 },
                 tree2_end: {
-                    friend: "Rickroll, dostal jsem tě 😊",
+                    friend: "😊",
+                    responses: [],
+                    end: true
+                },
+                tree2_endSad: {
+                    friend: "Tak jo, vyhrál/a jsi 😊. Tohle jsem nečekal 😄",
+                    responses: [],
+                    end: true
+                },
+                tree2_endRolled: {
+                    friend: "RickRolled, dostal jsem tě 😊",
                     responses: [],
                     end: true
                 },
                 tree2_endBad: {
-                    friend: "Tak už ti nic nepošlu. Uvidíme se zítra 😬",
+                    friend: "Tak už ti nic nepošlu. Uvidíme se zítra 😟",
                     responses: [],
                     end: true
                 }
@@ -145,14 +162,21 @@ class ChatScene extends Phaser.Scene {
                 start: {
                     friend: "Hele, do jedný hry chtějí, abych zadal svoje celé jméno, adresu a telefon. Mám to tam dát?",
                     responses: [
-                        { text: "Ne! To bych nikdy neudělal/a!", next: "tree3_correct1", points: 1 },
+                        { text: "Ne! To bych neudělal/a!", next: "tree3_correct1", points: 1 },
                         { text: "Asi jo, když to chtějí... 🤷", next: "tree3_wrong1" }
                     ]
                 },
                 tree3_correct1: {
+                    friend: "Ale říkali mi, že mi jinak účet zablokují 😬",
+                    responses: [
+                        { text: "Tak jim to napiš, chci s tebou večer hrát 😄", next: "tree3_wrong1" },
+                        { text: "Je to divný, nedělej to. Zneužijou tvé osobní údaje.", next: "tree3_correct2", points: 1 }
+                    ]
+                },
+                tree3_correct2: {
                     friend: "Přesně! To není bezpečné. 👏",
                     responses: [
-                        { text: "Vždy chránit osobní údaje. 🔐", next: "tree3_end", points: 1 },
+                        { text: "Vždy chránit osobní údaje 🔐😄", next: "tree3_end", points: 1 },
                         { text: "*zadám si svoje údaje, získám si odměnu sám.", next: "tree3_badSolo" }
                     ]
                 },
