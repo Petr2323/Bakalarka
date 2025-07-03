@@ -81,9 +81,9 @@ class CybersecurityScene extends Phaser.Scene {
         title: "Našel(a) jsi USB flash disk ve škole",   //good
         actions: [
           "Nezapojuj USB do počítače",
+          "Zeptej se, jestli někomu patří",
           "Řekni o tom učiteli nebo správci IT",
-          "USB odevzdej",
-          "Pouč ostatní, proč to může být nebezpečné (např. viry)"
+          "Pouč žáky a učitele, proč to může být nebezpečné (např. viry)"
         ]
       },
       {
