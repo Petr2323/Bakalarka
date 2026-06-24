@@ -4,7 +4,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.0/dist/phaser.min.js"></script>
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
   <script src="js/emailGameScene.js"></script>
 
   <title>Email Phishing</title>
@@ -18,13 +22,28 @@
       background-position: center;
       background-repeat: no-repeat;
       height: 100vh;
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
-
   </style>
 </head>
 
 <body>
   <div id="game-container"></div>
+
+  <script>
+    const config = {
+        type: Phaser.AUTO,
+        width: 900,              // Uprav šířku podle potřeby tvé hry
+        height: 600,             // Uprav výšku podle potřeby tvé hry
+        parent: 'game-container',
+        scene: [ EmailGameScene ] // Registrace tvé scény ze souboru js/emailGameScene.js
+    };
+
+    // Oficiální start hry
+    const game = new Phaser.Game(config);
+  </script>
 </body>
 
 </html>

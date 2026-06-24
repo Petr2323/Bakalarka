@@ -4,7 +4,10 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.0/dist/phaser.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
   <script src="js/runnerGameScene.js"></script>
 
   <title>Runner game</title>
@@ -18,13 +21,36 @@
       background-position: center;
       background-repeat: no-repeat;
       height: 100vh;
+      /* Vycentrování hry na střed obrazovky */
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
-
   </style>
 </head>
 
 <body>
   <div id="game-container"></div>
+
+  <script>
+    const config = {
+        type: Phaser.AUTO,
+        width: 900,              // Šířka hry (případně uprav podle rozlišení tvého runneru)
+        height: 600,             // Výška hry (případně uprav podle rozlišení tvého runneru)
+        parent: 'game-container',
+        physics: {
+            default: 'arcade',   // Runner hry obvykle vyžadují fyziku pro skákání a kolize
+            arcade: {
+                gravity: { y: 800 }, // Gravitace pro skákání postavy (uprav dle potřeby)
+                debug: false         // Nastav na true, pokud budeš chtít vidět kolizní krabice
+            }
+        },
+        scene: [ RunnerGameScene ] // Registrace scény z tvého souboru js/runnerGameScene.js
+    };
+
+    // Oficiální spuštění hry
+    const game = new Phaser.Game(config);
+  </script>
 </body>
 
 </html>

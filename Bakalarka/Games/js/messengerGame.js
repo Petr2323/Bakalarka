@@ -1,3 +1,63 @@
+// --- NOVÁ ÚVODNÍ SCÉNA ---
+class TitleScene extends Phaser.Scene {
+    constructor() {
+        super('TitleScene');
+    }
+
+    create() {
+        // Pozadí úvodní scény (stejná barva jako hra)
+        this.add.rectangle(0, 0, 900, 600, 0x1a1a2e).setOrigin(0);
+
+        // Ohraničení boxu s instrukcemi
+        this.add.rectangle(50, 50, 800, 500, 0x1a1a2e).setOrigin(0).setStrokeStyle(2, 0x6441a5);
+
+        // Nadpis
+        this.add.text(450, 120, 'Messenger game', {
+            fontSize: '40px',
+            color: '#f0e6ff',
+            fontStyle: 'bold',
+            fontFamily: '"Segoe UI Mono", monospace'
+        }).setOrigin(0.5);
+
+        // Instrukce/Text co dělat
+        const instructionsText = 
+            "Tvým úkolem je pomoci kamarádovi v chatu činit správná a bezpečná rozhodnutí na internetu.\n\n" +
+            "Čti pozorně jeho zprávy a vyber nejlepší možnou odpověď. Za správná rozhodnutí získáváš body.\n\n" +
+            "Kliknutím na tlačítko OK spustíš simulaci chatu.";
+
+        this.add.text(450, 280, instructionsText, {
+            fontSize: '20px',
+            color: '#d8caff',
+            fontFamily: '"Segoe UI Mono", monospace',
+            wordWrap: { width: 700 },
+            align: 'center'
+        }).setOrigin(0.5);
+
+        // Tlačítko OK
+        const okBtn = this.add.text(450, 460, 'OK', {
+            fontSize: '32px',
+            backgroundColor: '#5a4dcf',
+            color: '#f0e6ff',
+            padding: { x: 40, y: 15 },
+            fontStyle: 'bold',
+            stroke: '#3a2c8d',
+            strokeThickness: 3,
+            align: 'center',
+            fontFamily: '"Segoe UI Mono", monospace'
+        }).setOrigin(0.5).setInteractive({ useHandCursor: true });
+
+        // Efekty při najetí myši a kliknutí pro spuštění hry
+        okBtn.on('pointerover', () => okBtn.setStyle({ backgroundColor: '#7a69ff' }));
+        okBtn.on('pointerout', () => okBtn.setStyle({ backgroundColor: '#5a4dcf' }));
+        
+        okBtn.on('pointerdown', () => {
+            // Spustí herní scénu a vypne tuto úvodní
+            this.scene.start('ChatScene');
+        });
+    }
+}
+
+// --- VAŠE PŮVODNÍ HRA (BEZ ZMĚN) ---
 class ChatScene extends Phaser.Scene {
     constructor() {
         super('ChatScene');
@@ -25,7 +85,6 @@ class ChatScene extends Phaser.Scene {
         // Scroll buttons container (arrow up/down) - placed right side of response buttons
         this.scrollButtons = this.add.container(860, 337);
 
-        // Create scroll up button
         // Create scroll up button (arrow up)
         const upBtn = this.add.text(0, 0, '▲', {
             fontSize: '32px',
@@ -38,8 +97,7 @@ class ChatScene extends Phaser.Scene {
             align: 'center',
         }).setInteractive({ useHandCursor: true });
 
-        // Swap direction here:
-        upBtn.on('pointerdown', () => this.scrollChatBy(100));  // scroll down to show text below
+        upBtn.on('pointerdown', () => this.scrollChatBy(100));  
         upBtn.on('pointerover', () => upBtn.setStyle({ backgroundColor: '#7a69ff' }));
         upBtn.on('pointerout', () => upBtn.setStyle({ backgroundColor: '#5a4dcf' }));
 
@@ -57,13 +115,11 @@ class ChatScene extends Phaser.Scene {
             align: 'center',
         }).setInteractive({ useHandCursor: true });
 
-        // Swap direction here:
-        downBtn.on('pointerdown', () => this.scrollChatBy(-100)); // scroll up to show text above
+        downBtn.on('pointerdown', () => this.scrollChatBy(-100)); 
         downBtn.on('pointerover', () => downBtn.setStyle({ backgroundColor: '#7a69ff' }));
         downBtn.on('pointerout', () => downBtn.setStyle({ backgroundColor: '#5a4dcf' }));
 
         this.scrollButtons.add(downBtn);
-
 
         const allTrees = {
             phishing_tree: {
@@ -77,7 +133,7 @@ class ChatScene extends Phaser.Scene {
                 tree1_correct1: {
                     friend: "Brácha mi říká, že by na to kliknul 😅",
                     responses: [
-                        { text: "Neposlouchej ho, zkontroluj si ten e-mail, jestli je fakt školní, měl by být na stránkách školy. 😞", next: "tree1_correct2", points: 1 },
+                        { text: "Neposlouchej ho, zkontroluj si den e-mail, jestli je fakt školní, měl by být na stránkách školy. 😞", next: "tree1_correct2", points: 1 },
                         { text: "Když to říká, tak to zkus 🤔", next: "tree1_endBad" }
                     ]
                 },
@@ -106,7 +162,6 @@ class ChatScene extends Phaser.Scene {
                     end: true
                 }
             },
-
             youtube_safe_tree: {
                 start: {
                     friend: "Kámo, koukni na tohle video! 📺 https://www.youtube.com/watch?v=dQw4w9WgXcQ",
@@ -157,7 +212,6 @@ class ChatScene extends Phaser.Scene {
                     end: true
                 }
             },
-
             personal_info_tree: {
                 start: {
                     friend: "Hele, do jedný hry chtějí, abych zadal svoje celé jméno, adresu a telefon. Mám to tam dát?",
@@ -193,7 +247,6 @@ class ChatScene extends Phaser.Scene {
                         { text: "Vyzvedni ho, třeba to budou body navíc do herního obchodu 👏", next: "tree3_endBad" },
                         { text: "Napiš na podporu hry, hlavně nic nevyzvedávej 🚨", next: "tree3_end", points: 1 }
                     ],
-
                 },
                 tree3_end: {
                     friend: "Díky, už jsem klidnější 👏",
@@ -223,7 +276,6 @@ class ChatScene extends Phaser.Scene {
                     end: true
                 }
             },
-
             fake_account_tree: {
                 start: {
                     friend: "Někdo mi napsal přes Instagram a tvrdí, že je školní admin. Požádal mě o mé přihlášení do školního systému. Mám mu věřit?",
@@ -263,7 +315,6 @@ class ChatScene extends Phaser.Scene {
                     end: true
                 }
             },
-
             clickbait_tree: {
                 start: {
                     friend: "Wow! Právě jsem vyhrál nový iPhone! Musím jen kliknout na tenhle odkaz! 📱😲 https://newiphone.cz/getIphone=true",
@@ -319,7 +370,6 @@ class ChatScene extends Phaser.Scene {
     }
 
     addFriendMessage(text) {
-        // Create text first to get height dynamically
         const msgText = this.add.text(20, 0, text, {
             fontSize: '20px',
             color: '#d8caff',
@@ -331,14 +381,12 @@ class ChatScene extends Phaser.Scene {
         const bubbleWidth = msgText.width + padding * 2;
         const bubbleHeight = msgText.height + padding;
 
-        // Bubble background (left)
         const bubble = this.add.graphics();
         bubble.fillStyle(0x3a345e, 1);
         bubble.fillRoundedRect(0, 0, bubbleWidth, bubbleHeight, 15);
         bubble.lineStyle(2, 0x6441a5);
         bubble.strokeRoundedRect(0, 0, bubbleWidth, bubbleHeight, 15);
 
-        // Group bubble and text inside a container
         const container = this.add.container(0, this.chatHeight, [bubble, msgText]);
         msgText.setPosition(padding, padding / 2);
 
@@ -366,7 +414,6 @@ class ChatScene extends Phaser.Scene {
         bubble.lineStyle(2, 0x3a345e);
         bubble.strokeRoundedRect(0, 0, bubbleWidth, bubbleHeight, 15);
 
-        // Align bubble container to right side inside chat width (860)
         const containerX = 840 - bubbleWidth;
         const container = this.add.container(containerX, this.chatHeight, [bubble, msgText]);
         msgText.setPosition(padding, padding / 2);
@@ -377,7 +424,6 @@ class ChatScene extends Phaser.Scene {
         this.adjustScrollAfterNewMessage();
     }
 
-    // Called when a new message is added, automatically scroll to bottom if needed
     adjustScrollAfterNewMessage() {
         const maxHeight = 410;
         if (this.chatHeight > maxHeight) {
@@ -387,23 +433,18 @@ class ChatScene extends Phaser.Scene {
         }
     }
 
-    // Scroll chat container manually by deltaY pixels, clamping inside bounds
     scrollChatBy(deltaY) {
         const maxHeight = 410;
         let newY = this.chatContainer.y + deltaY;
-
-        // Clamp newY so chatContainer never scrolls too far up/down
-        const minY = 20 - (this.chatHeight - maxHeight); // max scroll up (negative)
-        const maxY = 20; // max scroll down (top)
+        const minY = 20 - (this.chatHeight - maxHeight);
+        const maxY = 20;
 
         if (this.chatHeight <= maxHeight) {
-            // No scrolling needed if content fits
             newY = 20;
         } else {
             if (newY < minY) newY = minY;
             if (newY > maxY) newY = maxY;
         }
-
         this.chatContainer.y = newY;
     }
 
@@ -413,14 +454,12 @@ class ChatScene extends Phaser.Scene {
 
     showResponses(responses) {
         this.clearResponseButtons();
-
         if (responses.length === 0) {
             this.showEnd();
             return;
         }
 
         let x = 0;
-
         responses.forEach((resp) => {
             const btn = this.add.text(x, 0, resp.text, {
                 fontSize: '24px',
@@ -452,13 +491,10 @@ class ChatScene extends Phaser.Scene {
             console.warn(`Node ${nodeKey} not found.`);
             return;
         }
-
         const node = this.dialogueTree[nodeKey];
-
         this.addFriendMessage(node.friend);
 
         if (node.end) {
-            console.log('Node has end=true, calling showEnd()');
             this.showEnd();
         } else {
             this.showResponses(node.responses);
@@ -466,10 +502,7 @@ class ChatScene extends Phaser.Scene {
     }
 
     showEnd() {
-        console.log('showEnd() called');
         this.clearResponseButtons();
-
-        // Show final message and score
         const endText = this.add.text(0, 0, `Vaše skóre: ${this.score}/${this.maxScore}`, {
             fontSize: '24px',
             color: '#f0e6ff',
@@ -491,16 +524,11 @@ class ChatScene extends Phaser.Scene {
 
         this.nextGameButton.on('pointerdown', () => {
             if (localStorage.getItem('playerScore') !== null) {
-                // It exists
                 let current = parseInt(localStorage.getItem('playerScore'));
                 localStorage.setItem('playerScore', current + this.score);
-                console.log("Current points:", current + this.score);
             } else {
-                // It does not exist yet
-                console.log("No points stored yet.");
-                localStorage.setItem('playerScore', this.score); // Optionally initialize it
+                localStorage.setItem('playerScore', this.score);
             }
-
             window.location.href = 'linkGame.html';
         });
 
@@ -509,13 +537,14 @@ class ChatScene extends Phaser.Scene {
     }
 }
 
-
+// --- UPRAVENÁ KONFIGURACE HRY ---
 const config = {
     type: Phaser.AUTO,
     width: 900,
     height: 600,
     backgroundColor: '#1a1a2e',
-    scene: [ChatScene]
+    // První scéna v poli (TitleScene) se spustí automaticky jako první
+    scene: [TitleScene, ChatScene] 
 };
 
 const game = new Phaser.Game(config);

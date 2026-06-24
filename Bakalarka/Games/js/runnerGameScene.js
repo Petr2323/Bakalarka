@@ -1,12 +1,20 @@
 class RunnerGameScene extends Phaser.Scene {
   constructor() {
     super({ key: 'RunnerGameScene' });
-    this.weakPasswords = ["123456", "password", "qwerty", "tatinek", "Pepicek", "Marie", "veslo", "borec", "zezlo", "smrcek"];
-    this.mediumPasswords = ["369852147", "leto2005", "Harik2323", "ZmrZliNa", "Sup3rMan", "wes1o", "Maminka123", "superHeszl0",
-      "11dolar22", "SmRk11"];
-    this.strongPasswords = ["MamRad$k0lu", "B@lonek7", "$rd1ck0", "Kra1#123", "BE@Ttl3s", "$lUn1ck0", "St@rHv3zd@",
-      "koCk@3113", "$tud3ntZSH150", "AqVariU$56"];
+    
+    // 1. Správná HTTP URL adresa Supabase
+    const SUPABASE_URL = 'https://fejkfjyoqrnqryqrlljy.supabase.co';
 
+    // 2. Anonymní API klíč
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlamtmanlvcXJucXJ5cXJsbGp5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyODI2MzMsImV4cCI6MjA5Nzg1ODYzM30.nVWNax8d5R3gVVSDfj8pyIpoaN4m9JWiIoRM8MkRF0E';
+
+    // Inicializace Supabase klienta
+    this.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    // Pole necháme prázdná, naplní se asynchronně z DB
+    this.weakPasswords = [];
+    this.mediumPasswords = [];
+    this.strongPasswords = [];
   }
 
   preload() {
@@ -19,26 +27,25 @@ class RunnerGameScene extends Phaser.Scene {
       frameHeight: 110
     });
 
-    this.load.image('bg', 'assets/runnerBG.jpeg'); // Or .png
-
+    this.load.image('bg', 'assets/runnerBG.jpeg');
   }
 
-  create() {
-    // Inicializace dostupných hesel
-    this.availableWeakPasswords = [...this.weakPasswords];
-    this.availableMediumPasswords = [...this.mediumPasswords];
-    this.availableStrongPasswords = [...this.strongPasswords];
-
+  // 👇 Změna na ASYNC kvůli await volání databáze
+  async create() {
     this.passwordsFrozenUntil = 0;
     this.originalFrame = 1; // 1 is the default player frame
-    this.wrongFrame = 4;    // 2 is a "wrong" frame — change as needed
+    this.wrongFrame = 4;    // 4 is a "wrong" frame
 
     // Add background first, set behind everything
     this.bg = this.add.tileSprite(0, 0, this.sys.game.config.width, this.sys.game.config.height, 'bg')
       .setOrigin(0, 0)
-      .setDepth(0); // put it behind
+      .setDepth(0);
 
-    this.lanes = [135, 305, 475];
+    // Staré rozlišení (bylo pro 900px širokou hru):
+// this.lanes = [135, 305, 475];
+
+// 🔥 Změň tyto hodnoty (aktuálně tam máš 100, 300, 500):
+this.lanes = [250, 450, 650];
     this.currentLane = 1;
     this.score = 0;
     this.totalWords = 6;
@@ -58,13 +65,48 @@ class RunnerGameScene extends Phaser.Scene {
       fill: '#fff'
     }).setVisible(false).setDepth(2);
 
-
     this.passwordsGroup = this.add.group();
 
-    // Show instructions and start button (added after background)
-    this.showInstructions();
-  }
+    // Vytvoříme dočasný text pro indikaci načítání z DB
+    const loadingText = this.add.text(this.cameras.main.centerX, this.cameras.main.centerY, 'Načítám hesla z databáze...', {
+      fontSize: '22px',
+      color: '#ffffff',
+      fontFamily: 'Arial'
+    }).setOrigin(0.5).setDepth(10);
 
+    try {
+      // 1. Stáhneme data z tabulky "Passwords"
+      const { data: dbPasswords, error } = await this.supabase
+        .from('Passwords')
+        .select('password, strength');
+
+      if (error) throw error;
+
+      if (!dbPasswords || dbPasswords.length === 0) {
+        throw new Error('Databáze vrátila prázdné pole hesel.');
+      }
+
+      // 2. Roztřídíme hesla do herních polí (vytáhneme čisté řetězce)
+      this.weakPasswords = dbPasswords.filter(item => item.strength === 'weak').map(item => item.password);
+      this.mediumPasswords = dbPasswords.filter(item => item.strength === 'medium').map(item => item.password);
+      this.strongPasswords = dbPasswords.filter(item => item.strength === 'strong').map(item => item.password);
+
+      // Inicializace dostupných hesel pro herní kola
+      this.availableWeakPasswords = [...this.weakPasswords];
+      this.availableMediumPasswords = [...this.mediumPasswords];
+      this.availableStrongPasswords = [...this.strongPasswords];
+
+      // Smažeme načítací text
+      loadingText.destroy();
+
+      // 3. Zobrazíme instrukce a výběr postavy
+      this.showInstructions();
+
+    } catch (err) {
+      console.error('Chyba při stahování dat ze Supabase:', err);
+      loadingText.setText('Chyba při načítání dat z databáze.\nZkontrolujte připojení.');
+    }
+  }
 
   showInstructions() {
     const centerX = this.cameras.main.centerX;
@@ -100,7 +142,7 @@ class RunnerGameScene extends Phaser.Scene {
 
     this.characterSprites = characters.map((key, i) => {
       const sprite = this.add.sprite(centerX - 60 + i * 120, centerY + 30, key)
-        .setInteractive()
+        .setInteractive({ useHandCursor: true })
         .setScale(0.75)
         .setDepth(1)
         .setData('key', key);
@@ -123,13 +165,12 @@ class RunnerGameScene extends Phaser.Scene {
       fill: '#fff',
       fontStyle: 'bold',
       align: 'center'
-    }).setOrigin(0.5).setInteractive().setDepth(1);
+    }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setDepth(1);
 
     this.startButton.on('pointerover', () => this.startButton.setStyle({ backgroundColor: '#00aa00' }));
     this.startButton.on('pointerout', () => this.startButton.setStyle({ backgroundColor: '#007700' }));
     this.startButton.on('pointerdown', () => this.startGame());
   }
-
 
   startGame() {
     // Remove instruction elements
@@ -144,17 +185,10 @@ class RunnerGameScene extends Phaser.Scene {
       .setScale(1)
       .setDepth(2);
 
-
     // Show player and score
     this.player.setVisible(true);
     this.scoreText.setVisible(true);
     this.scoreBackground.setVisible(true);
-
-    // Show player and score
-    this.player.setVisible(true);
-    this.scoreText.setVisible(true);
-    this.scoreBackground.setVisible(true);
-
 
     // Enable controls
     this.enableControls();
@@ -164,7 +198,7 @@ class RunnerGameScene extends Phaser.Scene {
     // Spawn the first word after 3 seconds delay
     this.time.delayedCall(3000, () => {
       this.spawnPasswords();
-      // Then spawn every 7 seconds
+      // Then spawn every 9 seconds
       this.spawnTimer = this.time.addEvent({
         delay: 9000,
         callback: this.spawnPasswords,
@@ -193,7 +227,6 @@ class RunnerGameScene extends Phaser.Scene {
       this.player.setFlipX(dir < 0);
     }
   }
-
 
   getUniquePassword(strength) {
     let pool;
@@ -276,7 +309,6 @@ class RunnerGameScene extends Phaser.Scene {
     this.collisionHandled = false; // reset kolize flagy
   }
 
-
   freezeOnWrongAnswer() {
     this.isFrozen = true;
     this.player.setFrame(this.wrongFrame);
@@ -295,8 +327,6 @@ class RunnerGameScene extends Phaser.Scene {
       this.passwordsFrozenUntil = this.time.now + 4000;
     });
   }
-
-
 
   update() {
     if (this.gameStarted) {
@@ -334,7 +364,6 @@ class RunnerGameScene extends Phaser.Scene {
     }
   }
 
-
   endGame() {
     if (!this.gameStarted) return;
     this.gameStarted = false;
@@ -362,56 +391,46 @@ class RunnerGameScene extends Phaser.Scene {
 
     const endMessage = `🎉 Konec hry!\nTvé herní skóre: ${this.score}/${this.totalWords}.\nZískané body: ${finalPoints}/3.`;
 
-    this.endBackground = this.add.rectangle(280, 280, 480, 200, 0x000000, 0.7)
+    // 🔥 VYCENTROVÁNO: Změna X z 280/300 na 450 (střed 900px široké hry)
+    this.endBackground = this.add.rectangle(450, 280, 480, 200, 0x000000, 0.7)
       .setOrigin(0.5)
       .setDepth(1);
 
-    this.add.text(300, 240, endMessage, {
+    // 🔥 VYCENTROVÁNO: Změna X na 450
+    this.add.text(450, 240, endMessage, {
       fontSize: '24px',
       fill: '#ffffff',
       align: 'center',
       wordWrap: { width: 460 }
     }).setOrigin(0.5).setDepth(2);
 
-    // Add "Další hra" button below message
-    this.nextGameButton = this.add.text(300, 350, "Další hra", {
+    // 🔥 VYCENTROVÁNO: Změna X na 450
+    this.nextGameButton = this.add.text(450, 350, "Další hra", {
       fontSize: '28px',
       backgroundColor: '#007700',
       padding: { x: 20, y: 10 },
       fill: '#fff',
       fontStyle: 'bold',
-      align: 'center',
-      cursor: 'pointer'
-    }).setOrigin(0.5).setDepth(2).setInteractive();
+      align: 'center'
+    }).setOrigin(0.5).setDepth(2).setInteractive({ useHandCursor: true });
 
     this.nextGameButton.on('pointerover', () => this.nextGameButton.setStyle({ backgroundColor: '#00aa00' }));
     this.nextGameButton.on('pointerout', () => this.nextGameButton.setStyle({ backgroundColor: '#007700' }));
 
     this.nextGameButton.on('pointerdown', () => {
       if (localStorage.getItem('playerScore') !== null) {
-        // It exists
         let current = parseInt(localStorage.getItem('playerScore'));
         localStorage.setItem('playerScore', current + finalPoints);
         console.log("Current points:", current + finalPoints);
       } else {
-        // It does not exist yet
         console.log("No points stored yet.");
-        localStorage.setItem('playerScore', finalPoints); // Optionally initialize it
+        localStorage.setItem('playerScore', finalPoints);
       }
 
       window.location.href = 'dragDrop.html';
     });
   }
-
-
 }
 
-const config = {
-  type: Phaser.AUTO,
-  width: 600,
-  height: 600,
-  backgroundColor: '#222',
-  scene: [RunnerGameScene]
-};
-
-const game = new Phaser.Game(config);
+// Spouštěcí konfigurace přesunuta do samostatného skriptu v HTML, 
+// zde ponecháno pouze pro případ přímého spuštění.

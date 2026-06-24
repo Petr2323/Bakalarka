@@ -5,137 +5,91 @@ class EmailGameScene extends Phaser.Scene {
         this.submitButton = null;   // keep reference to submit button
         this.nextGameButton = null; // reference for "Další hra" button
 
-        // Array of emails, each with text and suspicious parts
-        this.emails = [
-            {
-                sender: "Od: podpora@sesnam.cz",
-                title: "Předmět: POZOR!!! Vaše účty budou zablokovány!!!!!!!",
-                body: "Dobrý den,\n\nProsíme vás o zkontrolování údajů ve vašem účtu. \n\nDěkujeme, podpora týmu Seznam.",
-                suspicious: ['sender', 'title'],
-                suspiciousReasons: {
-                    sender: 'sesnam.cz namísto seznam.cz',
-                    title: 'Zastrašující předmět má přimět k rychlé reakci.'
-                }
-            },
-            {
-                sender: "Od: info@vasebanka.cz",
-                title: "Předmět: Nutná kontrola vašeho bankovního účtu",
-                body: "Vážený zákasníku,\n\nVaše banka zjistil podezřelé transaktion, proto zvás prosíme o zadání važih přihlašovacích údajú v odpovědi na tuto správu.\n\nVďaka",
-                suspicious: ['body'],
-                suspiciousReasons: {
-                    body: 'Hodně chyb v textu a zaslání citlivých informací e-mailem.'
-                }
-            },
-            {
-                sender: "Od: pepa.novy@seznam.cz",
-                title: "Předmět: Máme úkol z Fyziky!",
-                body: "Ahoj,\n\nZjistil jsem, že máme úkol z Fyziky, je to úloha 5.1.3c. Klidně ti s tím pomůžu, ozvi se.",
-                suspicious: []
-            },
-            {
-                sender: "Od: reditel@skola.ru",
-                title: "Předmět: ZmĚNA!! Výlet se zdraží!!!!",
-                body: "Dobrý den žáci,\n\n Zítřejší výlet se nečekaně zdražil, potřebuji abyste poslali 250Kč na účet 256987456/2010 s VS 1256 a v poznámce napsali Vaše jméno - výlet. Omlouvám se za vzniklé potíže. \n\n S pozdravem, ředitel",
-                suspicious: ['sender', 'title', 'body'],
-                suspiciousReasons: {
-                    sender: 'Ředitel české školy nebude mít školní email s .ru(Rusko)',
-                    title: 'Zastrašující a podezřele vypadající předmět má přimět k rychlé reakci.',
-                    body: 'Naléhavost a posílání peněz z údajů v e-mailu je podezřelé.'
-                }
-            },
-            {
-                sender: "Od: podpora@seznam.cz",
-                title: "Předmět: URGENTNÍ! Odpovězte RYCHLE!!",
-                body: "Vážený uživateli,\n\nNa vašem účtu byla zaznamenána neobvyklá aktivita. Pokud jste to nebyl vy, kontaktujte nás.",
-                suspicious: ['title'],
-                suspiciousReasons: {
-                    title: 'Zastrašující předmět má přimět k rychlé reakci.'
-                }
-            },
-            {
-                sender: "Od: alenka.zvonkova@xyz.cz",
-                title: "Předmět: Gratulujeme! Vyhráli jste!",
-                body: "Váš účet je náhodně vybrán k výhře peněz. Napište nám číslo vašeho účtu a telefonní číslo, abychom Vám peníze mohli poslat.",
-                suspicious: ['sender', 'body', 'title'],
-                suspiciousReasons: {
-                    sender: 'xyz.cz je podezřelá vlastní adresa.',
-                    title: 'Předmět Vás má nalákat.',
-                    body: 'Neposílat podezřelé osobě Vaše osobní údaje.'
-                }
-            },
-            {
-                sender: "Od: podpora@firma.cz",
-                title: "Předmět: Aktualizace informací o vašem zákaznickém účtu",
-                body: "Vážený zákazníku,\n\nProsíme o potvrzení vašich údajů, abychom mohli pokračovat ve službách. Úpravy proveďte po přihlášení k Vašemu účtu v záložce Nastavení údajů. \n\nDěkujeme, že jste s námi, vaše Firma",
-                suspicious: []
-            },
-            {
-                sender: "Od: ucetni@firma.cs",
-                title: "Předmět: Vaše faktura je připravena",
-                body: "Dobrý den,\n\nVaše faktura za provedenou práci je k dispozici v příloze.",
-                suspicious: ['sender'],
-                suspiciousReasons: {
-                    sender: 'Falešná adresa – používá .cs namísto .cz'
-                }
-            },
-            {
-                sender: "Od: podpora@firma.cz",
-                title: "Předmět: Váš účet byl deaktivován",
-                body: "Váš účet byl dočasně deaktivován kvůli podezřelé aktivitě. Klikněte na odkaz a ověřte si to. https://www.f1rma.net\n\n Děkujeme za pochopení, vaše Firma",
-                suspicious: ['body'],
-                suspiciousReasons: {
-                    body: 'Odkaz je podezřelý, neklikat.'
-                }
-            },
-            {
-                sender: "Od: info@seznam.cs",
-                title: "Předmět: Důležitá aktualizace účtu",
-                body: "Vážený uživateli,\n\nProsíme vás o potvrzení vašich údajů prostřednictvím odkazu níže.\n\n https://www.seznan.cz/ucet",
-                suspicious: ['sender', 'body'],
-                suspiciousReasons: {
-                    sender: 'Falešná adresa – .cs namísto .cz',
-                    body: 'Neklikat na podezřelý odkaz.'
-                }
-            }
-        ];
+        // 1. Správná HTTP URL adresa
+        const SUPABASE_URL = 'https://fejkfjyoqrnqryqrlljy.supabase.co';
+
+        // 2. Anonymní API klíč
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlamtmanlvcXJucXJ5cXJsbGp5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyODI2MzMsImV4cCI6MjA5Nzg1ODYzM30.nVWNax8d5R3gVVSDfj8pyIpoaN4m9JWiIoRM8MkRF0E';
+
+        // Inicializace klienta
+        this.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+        // Pole pro dynamická data
+        this.emails = [];
     }
 
     preload() { }
 
-    create() {
-        // Show tutorial overlay first
-        this.showTutorial();
+    async create() {
         this.usedEmails = [];
         this.round = 1;
         this.score = 0;
-        this.currentEmail = Phaser.Utils.Array.GetRandom(this.emails.filter(e => !this.usedEmails.includes(e)));
-        this.usedEmails.push(this.currentEmail);
 
+        // Vytvoříme dočasný načítací text
+        const loadingText = this.add.text(450, 300, 'Načítám e-maily z databáze...', {
+            fontSize: '24px',
+            color: '#d8caff',
+            fontFamily: '"Segoe UI Mono", monospace'
+        }).setOrigin(0.5);
+
+        try {
+            // Načtení dat z tabulky "Emails" podle tvé přesné struktury
+            const { data: dbEmails, error } = await this.supabase
+                .from('Emails')
+                .select('sender, title, body, suspiciousParts, suspiciousReasons');
+
+            if (error) throw error;
+
+            // Kontrola prázdné DB
+            if (!dbEmails || dbEmails.length === 0) {
+                throw new Error('Databáze vrátila prázdné pole e-mailů.');
+            }
+
+            // Přemapování dat s ohledem na správné názvy sloupců (camelCase)
+            this.emails = dbEmails.map(email => ({
+                sender: email.sender,
+                title: email.title,
+                body: email.body,
+                suspicious: email.suspiciousParts || [],     // Opraveno zde ✔️
+                suspiciousReasons: email.suspiciousReasons || {} // Opraveno zde ✔️
+            }));
+
+            // Výběr prvního náhodného emailu
+            this.currentEmail = Phaser.Utils.Array.GetRandom(this.emails);
+            
+            if (!this.currentEmail) {
+                throw new Error('Nepodařilo se vybrat náhodný e-mail.');
+            }
+
+            this.usedEmails.push(this.currentEmail);
+
+            // Smazání textu a start hry
+            loadingText.destroy();
+            this.showTutorial();
+
+        } catch (err) {
+            console.error('Chyba při stahování e-mailů:', err);
+            loadingText.setText('Chyba při načítání dat. Zkuste obnovit stránku.');
+        }
     }
 
     showTutorial() {
         const w = this.sys.game.config.width;
         const h = this.sys.game.config.height;
 
-        // Semi-transparent dark background
         this.tutorialBg = this.add.rectangle(0, 0, w, h, 0x000000, 0.8).setOrigin(0);
 
-        // Panel dimensions and position (taller height)
         const panelWidth = w * 0.75;
-        const panelHeight = h * 0.65;   // increased height from 0.5 to 0.65 of game height
+        const panelHeight = h * 0.65;
         const panelX = (w - panelWidth) / 2;
         const panelY = (h - panelHeight) / 2;
 
-        // Create a graphics object for the panel background (rounded rect)
         this.tutorialPanel = this.add.graphics();
-
-        // Draw rounded rectangle background with fill and stroke
         this.tutorialPanel.fillStyle(0x3a345e, 0.95);
         this.tutorialPanel.fillRoundedRect(panelX, panelY, panelWidth, panelHeight, 20);
         this.tutorialPanel.lineStyle(4, 0x6441a5, 1);
         this.tutorialPanel.strokeRoundedRect(panelX, panelY, panelWidth, panelHeight, 20);
 
-        // Title text
         this.tutorialTitle = this.add.text(w / 2, panelY + 60, 'Vítej ve hře Email Phishing!', {
             fontSize: '32px',
             fill: '#ffffff',
@@ -145,7 +99,6 @@ class EmailGameScene extends Phaser.Scene {
             align: 'center'
         }).setOrigin(0.5);
 
-        // Instructions lines
         const instructions = [
             "Úkolem je vybrat podezřelé části e-mailu kliknutím na ně.",
             "",
@@ -153,10 +106,10 @@ class EmailGameScene extends Phaser.Scene {
             ""
         ];
 
-        let startY = panelY + 140; // shifted down to give more space below title
+        let startY = panelY + 140;
         this.instructionTexts = [];
         instructions.forEach((line, i) => {
-            const t = this.add.text(w / 2, startY + i * 40, line, {  // increased line spacing to 40px
+            const t = this.add.text(w / 2, startY + i * 40, line, {
                 fontSize: '22px',
                 fill: '#ffffff',
                 stroke: '#000000',
@@ -167,20 +120,17 @@ class EmailGameScene extends Phaser.Scene {
             this.instructionTexts.push(t);
         });
 
-        // Button position and dimensions
         const btnWidth = 180;
         const btnHeight = 60;
         const btnX = w / 2 - btnWidth / 2;
-        const btnY = panelY + panelHeight - btnHeight - 40;  // moved button further down with more margin
+        const btnY = panelY + panelHeight - btnHeight - 40;
 
-        // Button background graphics
         this.startButtonBg = this.add.graphics();
         this.startButtonBg.fillStyle(0x5a4dcf, 1);
         this.startButtonBg.fillRoundedRect(btnX, btnY, btnWidth, btnHeight, 15);
         this.startButtonBg.lineStyle(3, 0x3a2c8d, 1);
         this.startButtonBg.strokeRoundedRect(btnX, btnY, btnWidth, btnHeight, 15);
 
-        // Button text
         this.startButton = this.add.text(w / 2, btnY + btnHeight / 2, 'Začít hru', {
             fontSize: '28px',
             fill: '#ffffff',
@@ -189,7 +139,6 @@ class EmailGameScene extends Phaser.Scene {
             strokeThickness: 4,
         }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
-        // Button hover effects
         this.startButton.on('pointerover', () => {
             this.startButtonBg.clear();
             this.startButtonBg.fillStyle(0x7a69ff, 1);
@@ -208,7 +157,6 @@ class EmailGameScene extends Phaser.Scene {
             this.startButton.setFill('#e0dfff');
         });
 
-        // Button click starts game and destroys tutorial
         this.startButton.on('pointerdown', () => {
             this.tutorialBg.destroy();
             this.tutorialPanel.destroy();
@@ -219,8 +167,6 @@ class EmailGameScene extends Phaser.Scene {
             this.initGame();
         });
     }
-
-
 
     initGame() {
         this.suspiciousSelections = [];
@@ -237,11 +183,8 @@ class EmailGameScene extends Phaser.Scene {
             .setOrigin(0)
             .setStrokeStyle(3, 0x6441a5);
 
-        // Pick random email
-        this.currentEmail = Phaser.Utils.Array.GetRandom(this.emails);
         this.correctSuspicious = this.currentEmail.suspicious;
 
-        // Create email parts using current email data
         this.createEmailPart('sender', this.currentEmail.sender, emailX + 20, emailY + 20, emailWidth - 40, 50);
         this.createEmailPart('title', this.currentEmail.title, emailX + 20, emailY + 90, emailWidth - 40, 50);
         this.createEmailPart('body', this.currentEmail.body, emailX + 20, emailY + 160, emailWidth - 40, 160);
@@ -273,26 +216,25 @@ class EmailGameScene extends Phaser.Scene {
         this.createLegend(emailX + 500, emailY + emailHeight + 15);
     }
 
-
     createEmailPart(key, content, x, y, width, height) {
+        // 👇 TENTO ŘÁDEK PŘIDEJ: Nahradí textové "\n" za skutečný nový řádek
+        const formattedContent = content ? content.replace(/\\n/g, '\n') : '';
+    
         const border = this.add.rectangle(x, y, width, height, 0x3a345e)
             .setOrigin(0)
             .setStrokeStyle(3, 0x6441a5)
             .setInteractive({ useHandCursor: true });
-
-        const text = this.add.text(x + 15, y + 15, content, {
+    
+        // 👇 ZMĚŇ 'content' NA 'formattedContent'
+        const text = this.add.text(x + 15, y + 15, formattedContent, {
             fontSize: '20px',
             color: '#d8caff',
             wordWrap: { width: width - 30 },
             fontFamily: '"Segoe UI Mono", monospace'
         });
-
+    
         border.on('pointerdown', () => this.toggleSelection(key, border));
         this.textElements[key] = { text, border };
-
-        // 👇 Fix: Add this line to store parts
-        /*if (!this.emailParts) this.emailParts = [];
-        this.emailParts.push(border);*/
     }
 
     toggleSelection(part, borderRect) {
@@ -310,7 +252,6 @@ class EmailGameScene extends Phaser.Scene {
         const width = 500;
         const height = 300;
 
-        // If already exists, destroy previous
         if (this.feedbackContainer) {
             this.feedbackContainer.destroy();
         }
@@ -337,90 +278,79 @@ class EmailGameScene extends Phaser.Scene {
             .setInteractive({ useHandCursor: true })
             .on('pointerdown', () => {
                 this.feedbackContainer.setVisible(false);
-
-                // Disable further interaction for submit and email parts
                 this.submitButton.disableInteractive();
                 Object.values(this.textElements).forEach(part => part.border.disableInteractive());
-
-                // Show next game button
                 this.showNextGameButton();
             });
 
         this.feedbackContainer.add([bg, text, okButton]);
     }
 
-
-
-
     checkSelections() {
         const email = this.currentEmail;
         const selected = this.suspiciousSelections;
         const correctSelections = email.suspicious;
         const currentReasons = email.suspiciousReasons || {};
-    
+
         let feedback = '';
         let score = 3;
-    
-        // Highlight all parts with their result
+
         ['sender', 'title', 'body'].forEach(part => {
             const border = this.textElements[part].border;
             const isSelected = selected.includes(part);
             const isSuspicious = correctSelections.includes(part);
-    
+
             if (isSuspicious && isSelected) {
                 feedback += `✔️ ${part}: ${currentReasons[part] || 'Správně označeno.'}\n`;
-                border.setStrokeStyle(4, 0x00ff00); // Green for correct
+                border.setStrokeStyle(4, 0x00ff00);
             } else if (isSuspicious && !isSelected) {
                 feedback += `❌ ${part} měl být označen! ${currentReasons[part] || ''}\n`;
-                border.setStrokeStyle(4, 0xffff00); // Yellow for missed suspicious
+                border.setStrokeStyle(4, 0xffff00);
                 score--;
             } else if (!isSuspicious && isSelected) {
                 feedback += `❌ ${part} neměl být označen.\n`;
-                border.setStrokeStyle(4, 0xf50505); // Red for incorrect selection
+                border.setStrokeStyle(4, 0xf50505);
                 score--;
             } else {
-                // ✅ Correctly not selected and not suspicious
-                border.setStrokeStyle(4, 0x00ff00); // Green for correct non-selection
+                border.setStrokeStyle(4, 0x00ff00);
             }
         });
-    
+
         score = Math.max(0, score);
         this.score += score;
-    
+
         this.showFeedbackWindow(feedback, score);
     }
-    
-    
 
     loadNextEmail() {
         this.suspiciousSelections = [];
-    
         const remainingEmails = this.emails.filter(e => !this.usedEmails.includes(e));
-        if (remainingEmails.length === 0) return;
-    
-        // 👇 Destroy old text + borders
+
+        if (remainingEmails.length === 0) {
+            console.warn("Nedostatek unikátních e-mailů v databázi!");
+            return;
+        }
+
         for (const key in this.textElements) {
             this.textElements[key].text.destroy();
             this.textElements[key].border.destroy();
         }
         this.textElements = {};
-        this.emailParts = [];
-    
-        this.submitButton.destroy();
+
+        if (this.submitButton) this.submitButton.destroy();
         if (this.feedbackContainer) this.feedbackContainer.destroy();
-    
+
         this.currentEmail = Phaser.Utils.Array.GetRandom(remainingEmails);
         this.usedEmails.push(this.currentEmail);
-    
+
         const emailX = 50;
         const emailY = 60;
         const emailWidth = 800;
-    
+
         this.createEmailPart('sender', this.currentEmail.sender, emailX + 20, emailY + 20, emailWidth - 40, 50);
         this.createEmailPart('title', this.currentEmail.title, emailX + 20, emailY + 90, emailWidth - 40, 50);
         this.createEmailPart('body', this.currentEmail.body, emailX + 20, emailY + 160, emailWidth - 40, 160);
-    
-        // Re-create submit button
+
         this.submitButton = this.add.text(emailX + 10, emailY + 320 + 25, "✅ Potvrdit", {
             fontSize: '28px',
             backgroundColor: '#7b68ee',
@@ -431,18 +361,14 @@ class EmailGameScene extends Phaser.Scene {
             strokeThickness: 5,
             shadow: { offsetX: 2, offsetY: 2, color: '#2b1f54', blur: 3 }
         }).setInteractive({ useHandCursor: true });
-    
+
         this.submitButton.on('pointerover', () => this.submitButton.setStyle({ backgroundColor: '#9a7eea', color: '#ffffff' }));
         this.submitButton.on('pointerout', () => this.submitButton.setStyle({ backgroundColor: '#7b68ee', color: '#f0e6ff' }));
         this.submitButton.on('pointerdown', () => this.checkSelections());
     }
-    
-
 
     showNextGameButton() {
-        if (this.nextGameButton) {
-            this.nextGameButton.destroy(); // Remove previous if any
-        }
+        if (this.nextGameButton) this.nextGameButton.destroy();
 
         this.nextGameButton = this.add.text(450, 550, 'Další hra', {
             font: '24px Arial',
@@ -451,20 +377,14 @@ class EmailGameScene extends Phaser.Scene {
             padding: { x: 10, y: 5 }
         }).setOrigin(0.5).setInteractive({ useHandCursor: true }).setDepth(10);
 
-
         this.nextGameButton.on('pointerdown', () => {
-            // Save score to localStorage
             if (localStorage.getItem('playerScore') !== null) {
-                // It exists
                 let current = parseInt(localStorage.getItem('playerScore'));
                 localStorage.setItem('playerScore', current + this.score);
-                console.log("Current points:", current + this.score);
             } else {
-                // It does not exist yet
-                console.log("No points stored yet.");
-                localStorage.setItem('playerScore', this.score); // Optionally initialize it
+                localStorage.setItem('playerScore', this.score);
             }
-            
+
             this.score = 0;
 
             if (this.round < 2) {
@@ -474,52 +394,10 @@ class EmailGameScene extends Phaser.Scene {
                 this.nextGameButton.destroy();
                 this.loadNextEmail();
             } else {
-                // Redirect to next game HTML
                 window.location.href = 'endlessRunner.html';
             }
         });
     }
-
-
-
-    restartGame() {
-        // Clear old email text and borders
-        for (const key in this.textElements) {
-            this.textElements[key].text.destroy();
-            this.textElements[key].border.destroy();
-        }
-        this.textElements = {};
-        this.suspiciousSelections = [];
-        this.feedbackText.setText('');
-
-        this.reasonTexts.forEach(t => t.destroy());
-        this.reasonTexts = [];
-
-
-        // Enable submit button again
-        this.submitButton.setInteractive({ useHandCursor: true });
-        this.submitButton.setAlpha(1);
-
-        // Pick a new email different from current one
-        let newEmail;
-        do {
-            newEmail = Phaser.Utils.Array.GetRandom(this.emails);
-        } while (newEmail === this.currentEmail);
-
-        this.currentEmail = newEmail;
-        this.correctSuspicious = new Set(this.currentEmail.suspicious);
-
-        // Create email parts for new email
-        const emailX = 50;
-        const emailY = 60;
-        const emailWidth = 800;
-        const emailHeight = 320;
-
-        this.createEmailPart('sender', this.currentEmail.sender, emailX + 20, emailY + 20, emailWidth - 40, 50);
-        this.createEmailPart('title', this.currentEmail.title, emailX + 20, emailY + 90, emailWidth - 40, 50);
-        this.createEmailPart('body', this.currentEmail.body, emailX + 20, emailY + 160, emailWidth - 40, 160);
-    }
-
 
     createLegend(baseX, baseY) {
         const legendX = baseX + 100;
@@ -551,13 +429,3 @@ class EmailGameScene extends Phaser.Scene {
         });
     }
 }
-
-const config = {
-    type: Phaser.AUTO,
-    width: 900,
-    height: 600,
-    backgroundColor: '#1a1a2e',
-    scene: [EmailGameScene]
-};
-
-const game = new Phaser.Game(config);
