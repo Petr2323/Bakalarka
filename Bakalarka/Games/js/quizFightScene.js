@@ -1,6 +1,13 @@
 class QuizFightScene extends Phaser.Scene {
   constructor() {
     super({ key: 'QuizFightScene' });
+
+    // Inicializace Supabase klienta
+    const SUPABASE_URL = 'https://fejkfjyoqrnqryqrlljy.supabase.co';
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlamtmanlvcXJucXJ5cXJsbGp5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyODI2MzMsImV4cCI6MjA5Nzg1ODYzM30.nVWNax8d5R3gVVSDfj8pyIpoaN4m9JWiIoRM8MkRF0E';
+    this.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    this.questionBank = [];
   }
 
   preload() {
@@ -22,30 +29,24 @@ class QuizFightScene extends Phaser.Scene {
     const g = this.timerIcon;
     g.clear();
 
-    // Draw circle for clock face
     g.lineStyle(3, 0xffff00);
     g.fillStyle(0x333300, 1);
     g.fillCircle(25, 25, 20);
     g.strokeCircle(25, 25, 20);
 
-    // Draw clock hands
     g.lineStyle(3, 0xffff00);
-    // Hour hand (pointing at 12)
     g.beginPath();
     g.moveTo(25, 25);
     g.lineTo(25, 12);
     g.strokePath();
 
-    // Minute hand (pointing at 3)
     g.beginPath();
     g.moveTo(25, 25);
     g.lineTo(38, 25);
     g.strokePath();
   }
 
-
-  create() {
-    // Initialize game state but DON'T start the game yet
+  async create() {
     this.playerHealth = 3;
     this.opponentHealth = 3;
     this.maxHealth = 3;
@@ -53,26 +54,25 @@ class QuizFightScene extends Phaser.Scene {
     this.currentQuestionIndex = 0;
     this.selectedCharacter = null;
 
-
     this.graphics = this.add.graphics();
 
-    // Background panel for game area
-    this.add.rectangle(400, 300, 780, 580, 0x111122).setStrokeStyle(3, 0x6666aa, 1);
+    // Vycentrováno na 900x600 (střed = 450, 300), upravená velikost panelu
+    this.add.rectangle(450, 300, 860, 580, 0x111122).setStrokeStyle(3, 0x6666aa, 1);
 
-    this.opponent = this.add.sprite(650, 400, 'boss').setOrigin(0.5, 0.5)
+    // Přesun bosse více doprava (z 650 na 720)
+    this.opponent = this.add.sprite(720, 400, 'boss').setOrigin(0.5, 0.5)
       .setFrame(0)
       .setScale(1)
       .setDepth(2);
 
-    this.opponent.setFlipX(true); // face right
+    this.opponent.setFlipX(true);
     this.opponent.setVisible(false);
 
-    // Timer icon positioned left
-    this.timerIcon = this.add.graphics({ x: 350, y: 340 });
+    // Vycentrování časovače na spodní střed (X posunut na 420)
+    this.timerIcon = this.add.graphics({ x: 420, y: 340 });
     this.drawTimerIcon();
 
-    // Timer numeric text right next to icon, aligned vertically center
-    this.timerText = this.add.text(400, 365, '15', {
+    this.timerText = this.add.text(475, 365, '15s', {
       fontSize: '28px',
       fill: '#ffff66',
       fontStyle: 'bold',
@@ -80,127 +80,50 @@ class QuizFightScene extends Phaser.Scene {
       strokeThickness: 3,
     }).setOrigin(0, 0.5);
 
-    // Question bank (unchanged)
-    // Question bank
-    this.questionBank = [
-      {
-        question: "Co je phishing?",
-        options: {
-          A: "Podvodné pokusy získat osobní údaje přes e-mail, zprávy nebo web",
-          B: "Rybaření se speciálním prutem",
-          C: "Podvodné pokusy s cílem změnit hesla v počítači"
-        },
-        correct: "A"
-      },
-      {
-        question: "Jaké jsou nejčastější cíle ransomwaru?",
-        options: {
-          A: "Získat osobní údaje",
-          B: "Uzamknout počítač a žádat výkupné za odemčení",
-          C: "Uzamknout počítač navždy"
-        },
-        correct: "B"
-      },
-      {
-        question: "Co je spam?",
-        options: {
-          A: "Nechtěné nebo nevyžádané e-maily či zprávy",
-          B: "Důležité e-maily či zprávy",
-          C: "Podvodná webová stránka s cílem získat údaje od uživatele"
-        },
-        correct: "A"
-      },
-      {
-        question: "Co je trojský kůň v kybernetice?",
-        options: {
-          A: "Malware, který se skrývá jen ve videohrách a škodí počítači",
-          B: "Speciální typ antiviru",
-          C: "Malware, který se tváří jako aplikace, ale škodí počítači"
-        },
-        correct: "C"
-      },
-      {
-        question: "Jak se můžeme chránit před kybernetickými hrozbami?",
-        options: {
-          A: "Používat silná hesla a aktualizovat software",
-          B: "Používat silná hesla a aktualizovat software jednou za půl roku",
-          C: "Používat stejné heslo na všech účtech"
-        },
-        correct: "A"
-      },
-      {
-        question: "Proč je důležité mít aktualizovaný antivirový program?",
-        options: {
-          A: "Zlepšuje rychlost počítače",
-          B: "Pomáhá odhalit a odstranit škodlivý software",
-          C: "Zvyšuje kvalitu připojení k internetu"
-        },
-        correct: "B"
-      },
-      {
-        question: "Co bys měl udělat, když dostaneš podezřelý e-mail?",
-        options: {
-          A: "Otevřít ho a kliknout na odkazy",
-          B: "Označit ho jako spam nebo ho smazat",
-          C: "Poslat ho kamarádovi"
-        },
-        correct: "B"
-      },
-      {
-        question: "Co je silné heslo?",
-        options: {
-          A: "Jednoduché a snadno zapamatovatelné",
-          B: "Dlouhé a obsahuje různé čísla a velikosti písmen",
-          C: "Dlouhé a obsahuje různé znaky, čísla a písmena"
-        },
-        correct: "C"
-      },
-      {
-        question: "Proč je důležité nesdílet své heslo s ostatními?",
-        options: {
-          A: "Protože by mohli získat přístup k tvému účtu",
-          B: "Protože heslo je tajné a nikdo ho nesmí znát",
-          C: "Obojí je správně"
-        },
-        correct: "C"
-      },
-      {
-        question: "Co znamená, když ti někdo nabízí 'dárky zdarma' na internetu?",
-        options: {
-          A: "Je to běžná nabídka, kterou můžeš využít",
-          B: "Může jít o podvod nebo pokus o získání tvých osobních informací",
-          C: "Vždy je to bezpečné a ověřené"
-        },
-        correct: "B"
-      }
-    ];
+    // Načítání z DB před zobrazením menu
+    this.loadingText = this.add.text(450, 300, "Načítám otázky z databáze...", {
+      fontSize: '24px', fill: '#ffffff', fontStyle: 'bold'
+    }).setOrigin(0.5);
 
-    this.shuffleQuestions();
+    try {
+      const { data: dbQuestions, error } = await this.supabase
+        .from('QuizQuestions')
+        .select('question, options, correct');
 
-    // Show start screen message & start button before game begins
-    this.showStartMenu();
+      if (error) throw error;
+
+      this.questionBank = dbQuestions;
+      this.shuffleQuestions();
+
+      this.loadingText.destroy();
+      this.showStartMenu();
+
+    } catch (err) {
+      console.error('Chyba při stahování otázek ze Supabase:', err);
+      this.loadingText.setText('Chyba spojení s databází.\nZkontrolujte připojení a obnovte stránku.');
+    }
   }
 
   showStartMenu() {
-    this.overlay = this.add.rectangle(400, 300, 800, 600, 0x000000, 1);
+    // Roztaženo přes celé okno 900x600
+    this.overlay = this.add.rectangle(450, 300, 900, 600, 0x000000, 1);
 
-    this.startPanel = this.add.rectangle(400, 300, 700, 420, 0x222244, 0.85);
+    this.startPanel = this.add.rectangle(450, 300, 750, 420, 0x222244, 0.85);
     this.startPanel.setStrokeStyle(3, 0x6666aa);
 
     const startMessage = "Vítejte v kvízové soubojové hře!\n\nVyberte postavu a začněte hru!";
-    this.startText = this.add.text(400, 180, startMessage, {
+    this.startText = this.add.text(450, 180, startMessage, {
       fontSize: '24px',
       fill: '#ffffff',
       align: 'center',
       fontStyle: 'bold',
-      wordWrap: { width: 650 },
+      wordWrap: { width: 680 },
     }).setOrigin(0.5);
 
-    // Character Selection Sprites
-    const male = this.add.sprite(300, 280, 'playerM', 0).setScale(1).setInteractive({ useHandCursor: true });
-    const female = this.add.sprite(500, 280, 'playerF', 0).setScale(1).setInteractive({ useHandCursor: true });
+    // Pozice postav přizpůsobeny novému středu (350 a 550)
+    const male = this.add.sprite(350, 280, 'playerM', 0).setScale(1).setInteractive({ useHandCursor: true });
+    const female = this.add.sprite(550, 280, 'playerF', 0).setScale(1).setInteractive({ useHandCursor: true });
 
-    // Selection outline
     const selectionOutline = this.add.graphics();
     const drawOutline = (sprite) => {
       selectionOutline.clear();
@@ -218,7 +141,7 @@ class QuizFightScene extends Phaser.Scene {
       drawOutline(female);
     });
 
-    this.startButton = this.add.text(400, 390, "Začít hru", {
+    this.startButton = this.add.text(450, 400, "Začít hru", {
       fontSize: '32px',
       fill: '#ffffff',
       backgroundColor: '#1a73e8',
@@ -226,31 +149,22 @@ class QuizFightScene extends Phaser.Scene {
       fontStyle: 'bold',
       stroke: '#0c47a1',
       strokeThickness: 3,
-      borderRadius: 12,
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
-    // Add a variable to store the warning text
     this.characterWarningText = null;
 
     this.startButton.on('pointerdown', () => {
       if (!this.selectedCharacter) {
-        // If warning doesn't exist yet, show it
         if (!this.characterWarningText) {
-          this.characterWarningText = this.add.text(400, 430, "Vyber si postavu před začátkem!", {
-            fontSize: '20px',
-            fill: '#ffaaaa',
-            fontStyle: 'bold',
-            stroke: '#000000',
-            strokeThickness: 2
+          this.characterWarningText = this.add.text(450, 460, "Vyber si postavu před začátkem!", {
+            fontSize: '20px', fill: '#ffaaaa', fontStyle: 'bold', stroke: '#000000', strokeThickness: 2
           }).setOrigin(0.5).setDepth(10);
         }
         return;
       }
 
-      // ✅ Destroy warning text if it exists
       if (this.characterWarningText) {
         this.characterWarningText.destroy();
-        this.characterWarningText = null;
       }
 
       this.overlay.destroy();
@@ -263,17 +177,13 @@ class QuizFightScene extends Phaser.Scene {
 
       this.startGame();
     });
-
   }
-
-
-
 
   startGame() {
     console.log("Game started!");
 
-    // Now that selectedCharacter is defined, create player sprite here
-    this.player = this.add.sprite(150, 400, this.selectedCharacter)
+    // Hráč posunut mírně doleva pro lepší vizuální rozestup (na X = 180)
+    this.player = this.add.sprite(180, 400, this.selectedCharacter)
       .setOrigin(0.5, 0.5)
       .setFrame(0)
       .setScale(1)
@@ -282,19 +192,14 @@ class QuizFightScene extends Phaser.Scene {
 
     this.opponent.setVisible(true);
 
-    // Player and opponent labels
-    this.add.text(this.player.x, this.player.y + 80, 'HRÁČ', {
-      fontSize: '22px',
-      fill: '#00ff00',
-      fontStyle: 'bold',
+    this.playerLabel = this.add.text(this.player.x, this.player.y + 80, 'HRÁČ', {
+      fontSize: '22px', fill: '#00ff00', fontStyle: 'bold',
     }).setOrigin(0.5);
-    this.add.text(this.opponent.x, this.opponent.y + 80, 'BOSS', {
-      fontSize: '22px',
-      fill: '#ff4444',
-      fontStyle: 'bold',
+    
+    this.opponentLabel = this.add.text(this.opponent.x, this.opponent.y + 80, 'BOSS', {
+      fontSize: '22px', fill: '#ff4444', fontStyle: 'bold',
     }).setOrigin(0.5);
 
-    this.shuffleQuestions();
     this.input.enabled = true;
     this.currentQuestionIndex = 0;
     this.playerHealth = this.maxHealth;
@@ -302,7 +207,6 @@ class QuizFightScene extends Phaser.Scene {
     this.updateHealthBars();
     this.showQuestion();
   }
-
 
   shuffleQuestions() {
     for (let i = this.questionBank.length - 1; i > 0; i--) {
@@ -318,7 +222,6 @@ class QuizFightScene extends Phaser.Scene {
     const barHeight = 20;
     const padding = 5;
 
-    // Player health bar above player
     let playerX = this.player.x - barWidth / 2;
     let playerY = this.player.y - this.player.height / 2 - 30;
 
@@ -332,7 +235,6 @@ class QuizFightScene extends Phaser.Scene {
       barHeight - padding * 2
     );
 
-    // Opponent health bar above opponent
     let oppX = this.opponent.x - barWidth / 2;
     let oppY = this.opponent.y - this.opponent.height / 2 - 30;
 
@@ -350,12 +252,10 @@ class QuizFightScene extends Phaser.Scene {
   }
 
   showQuestion() {
-    // Destroy previous question & options if they exist
     if (this.questionText) this.questionText.destroy();
     this.options.forEach(opt => opt && opt.destroy());
     this.options = [];
 
-    // Clear any previous timer event
     if (this.timerEvent) this.timerEvent.remove();
 
     if (this.currentQuestionIndex >= this.questionBank.length) {
@@ -365,28 +265,30 @@ class QuizFightScene extends Phaser.Scene {
 
     this.currentQuestion = this.questionBank[this.currentQuestionIndex];
 
-    // Show question text smaller so it fits
-    this.questionText = this.add.text(50, 50, this.currentQuestion.question, {
-      fontSize: '20px',
-      fill: '#ccc',
+    // Otázka zarovnána bezpečně na šířku 800px s wordWrapem
+    this.questionText = this.add.text(50, 45, this.currentQuestion.question, {
+      fontSize: '22px',
+      fill: '#ffffff',
       fontStyle: 'bold',
-      wordWrap: { width: 700 }
+      wordWrap: { width: 800 }
     });
 
-    // Option style smaller
     const optionStyle = {
-      fontSize: '18px',
+      fontSize: '16px',
       fill: '#fff',
       backgroundColor: '#222244',
-      padding: { x: 8, y: 5 },
+      padding: { x: 12, y: 8 },
       borderRadius: 6,
-      fontStyle: 'bold'
+      fontStyle: 'bold',
+      wordWrap: { width: 800 } // Prvky se automaticky zalomí, pokud je text dlouhý
     };
 
-    // Create options with smaller spacing for better fit
-    this.optionA = this.add.text(50, 110, "A: " + this.currentQuestion.options.A, optionStyle).setInteractive({ useHandCursor: true });
-    this.optionB = this.add.text(50, 150, "B: " + this.currentQuestion.options.B, optionStyle).setInteractive({ useHandCursor: true });
-    this.optionC = this.add.text(50, 190, "C: " + this.currentQuestion.options.C, optionStyle).setInteractive({ useHandCursor: true });
+    // Dynamický odraz pozic Y pro případ, že by byla otázka zalomená na více řádků
+    const optionsY = this.questionText.y + this.questionText.displayHeight + 25;
+
+    this.optionA = this.add.text(50, optionsY, "A: " + this.currentQuestion.options.A, optionStyle).setInteractive({ useHandCursor: true });
+    this.optionB = this.add.text(50, optionsY + this.optionA.displayHeight + 12, "B: " + this.currentQuestion.options.B, optionStyle).setInteractive({ useHandCursor: true });
+    this.optionC = this.add.text(50, this.optionB.y + this.optionB.displayHeight + 12, "C: " + this.currentQuestion.options.C, optionStyle).setInteractive({ useHandCursor: true });
 
     this.options = [this.optionA, this.optionB, this.optionC];
 
@@ -394,7 +296,6 @@ class QuizFightScene extends Phaser.Scene {
     this.optionB.on('pointerdown', () => this.handleAnswer("B"));
     this.optionC.on('pointerdown', () => this.handleAnswer("C"));
 
-    // Start 15-second countdown timer
     this.startTimer(15);
   }
 
@@ -418,8 +319,7 @@ class QuizFightScene extends Phaser.Scene {
   timerExpired() {
     this.input.enabled = false;
 
-    // Highlight correct answer only
-    [this.optionA, this.optionB, this.optionC].forEach(opt => {
+    this.options.forEach(opt => {
       if (opt.text.startsWith(this.currentQuestion.correct)) {
         opt.setStyle({ backgroundColor: '#006600' });
       } else {
@@ -427,7 +327,7 @@ class QuizFightScene extends Phaser.Scene {
       }
     });
 
-    this.showFeedbackText("Čas vypršel!", '#ffcc00', this.player.x, this.player.y - this.player.height / 2 - 60, () => {
+    this.showFeedbackText("Čas vypršel!", '#ffcc00', 450, 310, () => {
       this.playerHealth--;
       this.updateHealthBars();
       this.attackPlayer(() => this.checkGameStatus());
@@ -435,15 +335,9 @@ class QuizFightScene extends Phaser.Scene {
   }
 
   resetOptionStyles() {
-    const defaultStyle = {
-      fill: '#fff',
-      backgroundColor: '#222244',
-    };
-    [this.optionA, this.optionB, this.optionC].forEach(opt => {
-      opt.setStyle({
-        fill: defaultStyle.fill,
-        backgroundColor: defaultStyle.backgroundColor,
-      });
+    const defaultStyle = { fill: '#fff', backgroundColor: '#222244' };
+    this.options.forEach(opt => {
+      opt.setStyle({ fill: defaultStyle.fill, backgroundColor: defaultStyle.backgroundColor });
     });
   }
 
@@ -451,13 +345,12 @@ class QuizFightScene extends Phaser.Scene {
     if (!this.input.enabled) return;
     this.input.enabled = false;
 
-    // Stop timer if active
     if (this.timerEvent) {
       this.timerEvent.remove();
       this.timerText.setText('');
     }
 
-    [this.optionA, this.optionB, this.optionC].forEach(opt => {
+    this.options.forEach(opt => {
       if (opt.text.startsWith(selected)) {
         opt.setStyle({ backgroundColor: selected === this.currentQuestion.correct ? '#006600' : '#660000' });
       } else if (opt.text.startsWith(this.currentQuestion.correct)) {
@@ -468,7 +361,9 @@ class QuizFightScene extends Phaser.Scene {
     });
 
     const correct = selected === this.currentQuestion.correct;
-    this.showFeedbackText(correct ? "Správně!" : "Špatně!", correct ? '#00ff00' : '#ff0000', this.player.x, this.player.y - this.player.height / 2 - 60, () => {
+    
+    // Feedback text uprostřed (450)
+    this.showFeedbackText(correct ? "Správně!" : "Špatně!", correct ? '#00ff00' : '#ff0000', 450, 310, () => {
       if (correct) {
         this.opponentHealth--;
         this.updateHealthBars();
@@ -483,12 +378,8 @@ class QuizFightScene extends Phaser.Scene {
 
   showFeedbackText(text, color, x, y, callback) {
     let feedback = this.add.text(x, y, text, {
-      fontSize: '24px',
-      fill: color,
-      fontStyle: 'bold',
-      stroke: '#000',
-      strokeThickness: 3
-    }).setOrigin(0.5);
+      fontSize: '28px', fill: color, fontStyle: 'bold', stroke: '#000', strokeThickness: 4
+    }).setOrigin(0.5).setDepth(5);
 
     this.time.delayedCall(2000, () => {
       feedback.destroy();
@@ -498,32 +389,24 @@ class QuizFightScene extends Phaser.Scene {
 
   attackOpponent(callback) {
     let originalX = this.player.x;
-    let originalFrame = this.player.frame.name; // or frame.index, usually frame.name or frame.index
+    let originalFrame = this.player.frame.name;
 
-    // Change player frame to attack frame (assuming 1 is attack)
     this.player.setFrame(1);
     this.opponent.setFrame(2);
 
-    // Tween player moving right by 20 pixels
     this.tweens.add({
       targets: this.player,
-      x: originalX + 20,
+      x: originalX + 30,
       duration: 300,
       yoyo: true,
       ease: 'Power1',
       onComplete: () => {
-        // Reset player frame and position
         this.player.setFrame(originalFrame);
         this.player.x = originalX;
         this.opponent.setFrame(0);
 
-        // Show attack text animation
         let attackText = this.add.text(this.opponent.x, this.opponent.y - this.opponent.height / 2 - 50, "Hráč útočí!", {
-          fontSize: '20px',
-          fill: '#0f0',
-          fontStyle: 'bold',
-          stroke: '#000',
-          strokeThickness: 2
+          fontSize: '20px', fill: '#0f0', fontStyle: 'bold', stroke: '#000', strokeThickness: 2
         }).setOrigin(0.5);
 
         this.tweens.add({
@@ -541,35 +424,26 @@ class QuizFightScene extends Phaser.Scene {
     });
   }
 
-
   attackPlayer(callback) {
     let originalX = this.opponent.x;
     let originalFrame = this.opponent.frame.name;
 
-    // Change player frame to attack frame (e.g. frame 1)
     this.opponent.setFrame(1);
     this.player.setFrame(2);
 
-    // Tween player moving right by 20 pixels
     this.tweens.add({
       targets: this.opponent,
-      x: originalX - 20,
+      x: originalX - 30,
       duration: 300,
       yoyo: true,
       ease: 'Power1',
       onComplete: () => {
-        // Reset player frame and position
         this.opponent.setFrame(originalFrame);
         this.opponent.x = originalX;
         this.player.setFrame(0);
 
-        // Show attack text animation
         let attackText = this.add.text(this.player.x, this.player.y - this.player.height / 2 - 50, "Boss útočí!", {
-          fontSize: '20px',
-          fill: '#f00',
-          fontStyle: 'bold',
-          stroke: '#000',
-          strokeThickness: 2
+          fontSize: '20px', fill: '#f00', fontStyle: 'bold', stroke: '#000', strokeThickness: 2
         }).setOrigin(0.5);
 
         this.tweens.add({
@@ -603,10 +477,12 @@ class QuizFightScene extends Phaser.Scene {
   endGame(playerWon) {
     this.input.enabled = true;
 
+    if (this.timerEvent) this.timerEvent.remove();
     this.timerText.setText('');
-    this.questionText && this.questionText.destroy();
+    if (this.questionText) this.questionText.destroy();
     this.options.forEach(opt => opt && opt.destroy());
-    this.timerIcon.destroy();
+    if (this.timerIcon) this.timerIcon.destroy();
+    
     this.score = 0;
 
     if (playerWon) {
@@ -622,55 +498,44 @@ class QuizFightScene extends Phaser.Scene {
     let endText = playerWon ? "Vyhrál jsi! Získal jsi 3 body." : "Prohrál jsi, nezískáváš žádné body!";
     let color = playerWon ? '#00ff00' : '#ff0000';
 
-    let message = this.add.text(400, 200, endText, {
-      fontSize: '36px',
+    // Výsledkový panel na přesný střed (450, 200)
+    this.endMessageText = this.add.text(450, 220, endText, {
+      fontSize: '32px',
       fill: color,
       fontStyle: 'bold',
       stroke: '#000',
-      strokeThickness: 4
+      strokeThickness: 4,
+      align: 'center'
     }).setOrigin(0.5);
 
-    // "Next Game" button
-    this.nextButton = this.add.text(400, 450, "Další hra", {
+    // Tlačítko Další hra vycentrováno na střed (450)
+    this.nextButton = this.add.text(450, 450, "Další hra", {
       fontSize: '28px',
       fill: '#fff',
-      backgroundColor: '#228B22', // green background
+      backgroundColor: '#228B22',
       padding: { x: 20, y: 10 },
       fontStyle: 'bold',
       stroke: '#004400',
       strokeThickness: 3
     }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
-    this.nextButton.on('pointerover', () => {
-      this.nextButton.setStyle({ backgroundColor: '#2ecc71' });
-    });
-
-    this.nextButton.on('pointerout', () => {
-      this.nextButton.setStyle({ backgroundColor: '#228B22' });
-    });
+    this.nextButton.on('pointerover', () => this.nextButton.setStyle({ backgroundColor: '#2ecc71' }));
+    this.nextButton.on('pointerout', () => this.nextButton.setStyle({ backgroundColor: '#228B22' }));
 
     this.nextButton.on('pointerdown', () => {
-      if (localStorage.getItem('playerScore') !== null) {
-        // It exists
-        let current = parseInt(localStorage.getItem('playerScore'));
-        localStorage.setItem('playerScore', current + this.score);
-        console.log("Current points:", current + this.score);
-      } else {
-        // It does not exist yet
-        console.log("No points stored yet.");
-        localStorage.setItem('playerScore', this.score); // Optionally initialize it
-      }
+      let current = parseInt(localStorage.getItem('playerScore')) || 0;
+      localStorage.setItem('playerScore', current + this.score);
+      console.log("Current points:", current + this.score);
 
-      window.location.href = 'messengerGame.html'; // Change to your target HTML file
+      window.location.href = 'messengerGame.html';
     });
   }
-
 }
 
-
+// Konfigurační blok upraven pro sjednocené rozlišení 900x600
 const config = {
   type: Phaser.AUTO,
-  width: 800,
+  width: 900,
   height: 600,
   backgroundColor: '#1a1a2e',
   scene: [QuizFightScene]

@@ -1,54 +1,62 @@
 class SuspiciousLinkGame extends Phaser.Scene {
     constructor() {
         super({ key: 'SuspiciousLinkGame' });
+        
+        const SUPABASE_URL = 'https://fejkfjyoqrnqryqrlljy.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlamtmanlvcXJucXJ5cXJsbGp5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyODI2MzMsImV4cCI6MjA5Nzg1ODYzM30.nVWNax8d5R3gVVSDfj8pyIpoaN4m9JWiIoRM8MkRF0E';
+        
+        this.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+        
+        // Výchozí fallback data přímo v konstruktoru pro případ, že Supabase kompletně selže
+        this.links = [
+            { url: "https://www.youtube.com", suspicious: false },
+            { url: "https://www.youtub.com", suspicious: true },
+            { url: "https://www.csob.cz", suspicious: false },
+            { url: "https://www.csob.ru", suspicious: true },
+            { url: "https://www.facebook.com", suspicious: false }
+        ];
     }
 
-    preload() {
-        // preload assets if any
+    async preload() {
+        console.log("Načítám odkazy ze Supabase...");
+        
+        try {
+            // 🔥 OPRAVA: Změna 'Links' na malá písmena 'links'
+            const { data, error } = await this.supabase
+                .from('links') 
+                .select('url, suspicious');
+
+            if (error) throw error;
+
+            if (data && data.length > 0) {
+                this.links = data;
+                console.log(`Úspěšně načteno ${this.links.length} odkazů z databáze.`);
+            } else {
+                console.warn('Databáze vrátila prázdná data, používám fallback.');
+            }
+        } catch (error) {
+            console.error('Chyba při stahování dat ze Supabase, používám záložní odkazy:', error.message);
+            // Fallback je bezpečně jištěn z constructoru
+        }
     }
 
     create() {
         this.gameWidth = this.sys.game.config.width;
         this.gameHeight = this.sys.game.config.height;
 
-        this.links = [
-            { url: "https://www.youtub.com", suspicious: true },
-            { url: "https://www.csob.ru", suspicious: true },
-            { url: "https://www.seznam.cz-login.com", suspicious: true },
-            { url: "https://www.facebook.cze", suspicious: true },
-            { url: "https://www.instagrm.com", suspicious: true },
-            { url: "https://www.email.seznam.cz/?hack=true", suspicious: true },
-            { url: "https://www.bakalari.vip", suspicious: true },
-            { url: "https://mapy.cz-find.net", suspicious: true },
-            { url: "https://wwe.zsnestemice.cz", suspicious: true },
-            { url: "https://www.zsnestem1ce.cz", suspicious: true },
-
-            { url: "https://www.youtube.com", suspicious: false },
-            { url: "https://www.csob.cz", suspicious: false },
-            { url: "https://www.email.seznam.cz", suspicious: false },
-            { url: "https://www.facebook.com", suspicious: false },
-            { url: "https://www.instagram.com", suspicious: false },
-            { url: "https://www.email.seznam.cz/?action=login", suspicious: false },
-            { url: "https://www.bakalari.cz", suspicious: false },
-            { url: "https://www.mapy.cz/?q=Neštěmice", suspicious: false },
-            { url: "https://www.google.com/maps", suspicious: false },
-            { url: "https://www.zsnestemice.cz", suspicious: false },
-        ];
-
         this.score = 0;
         this.currentIndex = 0;
+        this.wrongAnswers = []; 
 
-        // Randomly pick 5 unique links
+        // Náhodný výběr 5 unikátních odkazů
         this.gameLinks = Phaser.Utils.Array.Shuffle(this.links).slice(0, 5);
 
         this.showTutorial();
     }
 
     showTutorial() {
-        // semi-transparent overlay
         this.tutorialBg = this.add.rectangle(0, 0, this.gameWidth, this.gameHeight, 0x000000, 0.85).setOrigin(0);
 
-        // panel
         const panelWidth = this.gameWidth * 0.8;
         const panelHeight = this.gameHeight * 0.5;
         const panelX = (this.gameWidth - panelWidth) / 2;
@@ -60,7 +68,6 @@ class SuspiciousLinkGame extends Phaser.Scene {
         this.tutorialPanel.lineStyle(4, 0x6441a5, 1);
         this.tutorialPanel.strokeRoundedRect(panelX, panelY, panelWidth, panelHeight, 20);
 
-        // title
         this.tutorialTitle = this.add.text(this.gameWidth / 2, panelY + 60, "Je odkaz podezřelý?", {
             fontSize: '32px',
             fill: '#ffffff',
@@ -70,7 +77,6 @@ class SuspiciousLinkGame extends Phaser.Scene {
             align: 'center'
         }).setOrigin(0.5);
 
-        // instructions
         const instructions = [
             "Urči, zda je adresa bezpečná či podezřelá.",
             "Na určení máš 7 sekund. Za správnou odpověď máš bod."
@@ -90,7 +96,6 @@ class SuspiciousLinkGame extends Phaser.Scene {
             this.tutorialInstructions.push(text);
         });
 
-        // start button
         const btnWidth = 200;
         const btnHeight = 60;
         const btnX = this.gameWidth / 2 - btnWidth / 2;
@@ -129,7 +134,6 @@ class SuspiciousLinkGame extends Phaser.Scene {
         });
 
         this.startButton.on('pointerdown', () => {
-            // destroy tutorial elements
             this.tutorialBg.destroy();
             this.tutorialPanel.destroy();
             this.tutorialTitle.destroy();
@@ -137,29 +141,25 @@ class SuspiciousLinkGame extends Phaser.Scene {
             this.startButton.destroy();
             this.tutorialInstructions.forEach(t => t.destroy());
 
-            // start game
             this.startGame();
         });
     }
 
-
     startGame() {
         this.score = 0;
         this.currentIndex = 0;
-
         this.showNextLink();
     }
 
     showNextLink() {
-        if (this.currentLinkText) {
-            this.currentLinkText.destroy();
-        }
+        if (this.currentLinkText) this.currentLinkText.destroy();
         if (this.safeButton) {
             this.safeButton.destroy();
             this.suspiciousButton.destroy();
             this.timerText.destroy();
         }
 
+        // Pokud pole obsahuje prvky, hra už neskočí hned do GameOver
         if (this.currentIndex >= this.gameLinks.length) {
             this.showGameOver();
             return;
@@ -167,9 +167,8 @@ class SuspiciousLinkGame extends Phaser.Scene {
 
         const link = this.gameLinks[this.currentIndex];
 
-        // Display the link big and centered
         this.currentLinkText = this.add.text(this.gameWidth / 2, this.gameHeight / 2 - 50, link.url, {
-            fontSize: '28px',
+            fontSize: '24px',
             fill: '#d8caff',
             fontStyle: 'bold',
             stroke: '#000000',
@@ -178,7 +177,6 @@ class SuspiciousLinkGame extends Phaser.Scene {
             align: 'center'
         }).setOrigin(0.5);
 
-        // Safe button
         this.safeButton = this.add.text(this.gameWidth / 2 - 150, this.gameHeight / 2 + 70, 'Bezpečný', {
             fontSize: '26px',
             backgroundColor: '#4CAF50',
@@ -189,7 +187,6 @@ class SuspiciousLinkGame extends Phaser.Scene {
             strokeThickness: 4,
         }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
-        // Suspicious button
         this.suspiciousButton = this.add.text(this.gameWidth / 2 + 150, this.gameHeight / 2 + 70, 'Podezřelý', {
             fontSize: '26px',
             backgroundColor: '#f44336',
@@ -209,7 +206,6 @@ class SuspiciousLinkGame extends Phaser.Scene {
         this.safeButton.once('pointerdown', () => this.handleAnswer(false));
         this.suspiciousButton.once('pointerdown', () => this.handleAnswer(true));
 
-        // Timer display
         this.timeLeft = 7;
         this.timerText = this.add.text(this.gameWidth / 2, this.gameHeight / 2 + 150, `Čas: ${this.timeLeft}`, {
             fontSize: '24px',
@@ -219,7 +215,6 @@ class SuspiciousLinkGame extends Phaser.Scene {
             strokeThickness: 3
         }).setOrigin(0.5);
 
-        // Countdown timer event
         this.timerEvent = this.time.addEvent({
             delay: 1000,
             callback: this.updateTimer,
@@ -234,7 +229,7 @@ class SuspiciousLinkGame extends Phaser.Scene {
 
         if (this.timeLeft <= 0) {
             this.timerEvent.remove(false);
-            this.handleAnswer(null);  // no answer chosen
+            this.handleAnswer(null);  
         }
     }
 
@@ -245,13 +240,7 @@ class SuspiciousLinkGame extends Phaser.Scene {
 
         const currentLink = this.gameLinks[this.currentIndex];
 
-        // Initialize wrongAnswers array if not yet
-        if (!this.wrongAnswers) {
-            this.wrongAnswers = [];
-        }
-
         if (selectedSuspicious === null) {
-            // timed out - count as wrong answer with userAnswer = null
             this.wrongAnswers.push({
                 url: currentLink.url,
                 correctSuspicious: currentLink.suspicious,
@@ -260,7 +249,6 @@ class SuspiciousLinkGame extends Phaser.Scene {
         } else if (selectedSuspicious === currentLink.suspicious) {
             this.score++;
         } else {
-            // wrong answer
             this.wrongAnswers.push({
                 url: currentLink.url,
                 correctSuspicious: currentLink.suspicious,
@@ -273,7 +261,6 @@ class SuspiciousLinkGame extends Phaser.Scene {
     }
 
     showGameOver() {
-        // Determine final game points based on correct answers
         let finalPoints = 0;
         if (this.score >= 4) {
             finalPoints = 2;
@@ -282,7 +269,6 @@ class SuspiciousLinkGame extends Phaser.Scene {
         } else {
             finalPoints = 0;
         }
-
 
         this.cameras.main.setBackgroundColor('#1a1a2e');
         this.add.rectangle(0, 0, this.gameWidth, this.gameHeight, 0x1a1a2e).setOrigin(0);
@@ -299,7 +285,8 @@ class SuspiciousLinkGame extends Phaser.Scene {
             fontSize: '28px',
             fill: '#d8caff',
             stroke: '#000000',
-            strokeThickness: 3
+            strokeThickness: 3,
+            align: 'center'
         }).setOrigin(0.5);
 
         let startY = this.gameHeight / 2 + 20;
@@ -313,7 +300,6 @@ class SuspiciousLinkGame extends Phaser.Scene {
             }).setOrigin(0.5);
 
             this.wrongAnswers.forEach((item, index) => {
-                const userAnsStr = item.userAnswer === null ? "Žádná" : (item.userAnswer ? "Podezřelá" : "Bezpečná");
                 const correctStr = item.correctSuspicious ? "Podezřelá" : "Bezpečná";
 
                 this.add.text(this.gameWidth / 2, startY + 35 + index * 30,
@@ -327,14 +313,11 @@ class SuspiciousLinkGame extends Phaser.Scene {
                 }).setOrigin(0.5);
             });
 
-            // Adjust button Y position based on number of wrong answers
             startY += 35 + this.wrongAnswers.length * 30 + 30;
         } else {
-            // No wrong answers, set button a bit lower
             startY += 70;
         }
 
-        // Restart button
         const btnWidth = 220;
         const btnHeight = 60;
         const btnX = this.gameWidth / 2 - btnWidth / 2;
@@ -374,20 +357,15 @@ class SuspiciousLinkGame extends Phaser.Scene {
 
         this.restartButton.on('pointerdown', () => {
             if (localStorage.getItem('playerScore') !== null) {
-                // It exists
                 let current = parseInt(localStorage.getItem('playerScore'));
                 localStorage.setItem('playerScore', current + finalPoints);
-                console.log("Current points:", current + finalPoints);
             } else {
-                // It does not exist yet
-                console.log("No points stored yet.");
-                localStorage.setItem('playerScore', finalPoints); // Optionally initialize it
+                localStorage.setItem('playerScore', finalPoints); 
             }
 
             window.location.href = 'results.html';
         });
     }
-
 }
 
 const config = {
@@ -395,6 +373,7 @@ const config = {
     width: 900,
     height: 600,
     backgroundColor: '#1a1a2e',
+    parent: 'game-container',
     scene: [SuspiciousLinkGame]
 };
 

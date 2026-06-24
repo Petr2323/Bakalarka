@@ -4,7 +4,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.0/dist/phaser.min.js"></script>
+  
   <script src="js/dragDropScene.js"></script>
 
   <title>Drag and Drop</title>
@@ -18,13 +22,37 @@
       background-position: center;
       background-repeat: no-repeat;
       height: 100vh;
+      /* Dokonalé vycentrování herního okna na střed obrazovky */
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
-
   </style>
 </head>
 
 <body>
   <div id="game-container"></div>
+
+  <script>
+    const config = {
+        type: Phaser.AUTO,
+        width: 900,               // Šířka okna (sjednoceno na 900px jako u runneru)
+        height: 600,              // Výška okna
+        parent: 'game-container',
+        backgroundColor: '#222',  // Záložní barva pozadí plátna
+        physics: {
+            default: 'arcade',    // Drag & Drop hry obvykle nepotřebují gravitaci,
+            arcade: {
+                gravity: { y: 0 },// proto je gravitace na 0
+                debug: false
+            }
+        },
+        scene: [ DragDropScene ]  // Registrace scény (ujisti se, že se tak jmenuje třída v js/dragDropScene.js)
+    };
+
+    // Oficiální spuštění hry
+    const game = new Phaser.Game(config);
+  </script>
 </body>
 
 </html>

@@ -57,7 +57,7 @@ class TitleScene extends Phaser.Scene {
     }
 }
 
-// --- VAŠE PŮVODNÍ HRA (BEZ ZMĚN) ---
+// --- HLAVNÍ CHAT SCÉNA ---
 class ChatScene extends Phaser.Scene {
     constructor() {
         super('ChatScene');
@@ -326,7 +326,7 @@ class ChatScene extends Phaser.Scene {
                 tree5_correct1: {
                     friend: "Ale co když ne, já chci nový mobil 😅",
                     responses: [
-                        { text: "Tyhle věci jsou vždycky podezřelý, nedělej to 🧐", next: "tree5_correct2", points: 1 },
+                        { text: "Tyhle věci jsou always podezřelý, nedělej to 🧐", next: "tree5_correct2", points: 1 },
                         { text: "Tak jo, co se může stát, buď budeš mít mobil nebo ne 😅", next: "tree5_wrong1" }
                     ]
                 },
@@ -503,21 +503,23 @@ class ChatScene extends Phaser.Scene {
 
     showEnd() {
         this.clearResponseButtons();
-        const endText = this.add.text(0, 0, `Vaše skóre: ${this.score}/${this.maxScore}`, {
+        
+        // Text se skóre na pozici [0, 10] v rámci kontejneru
+        const endText = this.add.text(0, 10, `Vaše skóre: ${this.score}/${this.maxScore}`, {
             fontSize: '24px',
             color: '#f0e6ff',
             fontFamily: '"Segoe UI Mono", monospace',
         });
 
-        this.nextGameButton = this.add.text(100, 100, "Další hra", {
+        // Tlačítko pod textem (posunuto na Y: 60), aby se nepřekrývala
+        this.nextGameButton = this.add.text(0, 60, "Další hra", {
             fontSize: '28px',
             backgroundColor: '#007700',
             padding: { x: 20, y: 10 },
             fill: '#fff',
             fontStyle: 'bold',
-            align: 'center',
-            cursor: 'pointer'
-        }).setOrigin(0.5).setDepth(2).setInteractive();
+            align: 'center'
+        }).setInteractive({ useHandCursor: true }); // Opraven hand cursor
 
         this.nextGameButton.on('pointerover', () => this.nextGameButton.setStyle({ backgroundColor: '#00aa00' }));
         this.nextGameButton.on('pointerout', () => this.nextGameButton.setStyle({ backgroundColor: '#007700' }));

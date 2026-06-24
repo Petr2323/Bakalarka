@@ -1,13 +1,14 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="cs">
 
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.0/dist/phaser.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <script src="js/linkGame.js"></script>
 
-  <title>Suspicious links</title>
+  <title>Podezřelé odkazy</title>
 
   <style>
     body {
@@ -18,8 +19,18 @@
       background-position: center;
       background-repeat: no-repeat;
       height: 100vh;
+      width: 100vw;
+      overflow: hidden;
+      /* Vycentrování herního kontejneru na střed */
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
 
+    #game-container {
+      /* Zajištění ostrosti pixelů, pokud by se hra škálovala */
+      image-rendering: pixelated;
+    }
   </style>
 </head>
 

@@ -4,10 +4,14 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
+  
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  
   <script src="https://cdn.jsdelivr.net/npm/phaser@3.55.0/dist/phaser.min.js"></script>
+  
   <script src="js/quizFightScene.js"></script>
 
-  <title>quiz Fight</title>
+  <title>Quiz Fight</title>
 
   <style>
     body {
@@ -18,13 +22,38 @@
       background-position: center;
       background-repeat: no-repeat;
       height: 100vh;
+      /* Dokonalé vycentrování herního plátna na střed obrazovky */
+      display: flex;
+      justify-content: center;
+      align-items: center;
     }
-
   </style>
 </head>
 
 <body>
   <div id="game-container"></div>
+
+  <script>
+    const config = {
+        type: Phaser.AUTO,
+        width: 900,               // Sjednocená šířka okna (900px)
+        height: 600,              // Sjednocená výška okna (600px)
+        parent: 'game-container',
+        backgroundColor: '#1a1a2e',// Tmavé pozadí plátna
+        physics: {
+            default: 'arcade',
+            arcade: {
+                gravity: { y: 0 },
+                debug: false
+            }
+        },
+        // Registrace scény (ujisti se, že se tak jmenuje třída v js/quizFightScene.js)
+        scene: [ QuizFightScene ]  
+    };
+
+    // Oficiální spuštění hry
+    const game = new Phaser.Game(config);
+  </script>
 </body>
 
 </html>

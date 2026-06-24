@@ -1,10 +1,14 @@
-class CybersecurityScene extends Phaser.Scene {
+class DragDropScene extends Phaser.Scene {
   constructor() {
-    super({ key: 'CybersecurityScene' });
+    super({ key: 'DragDropScene' });
 
-    // 1. Inicializace Supabase (Doplňte své URL a ANON KEY)
-    const SUPABASE_URL = 'https://vase-id-projektu.supabase.co';
-    const SUPABASE_ANON_KEY = 'eyJh...vas-dlouhy-anon-klic';
+    // 1. Správná HTTP URL adresa
+    const SUPABASE_URL = 'https://fejkfjyoqrnqryqrlljy.supabase.co';
+
+    // 2. Anonymní API klíč
+    const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlamtmanlvcXJucXJ5cXJsbGp5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyODI2MzMsImV4cCI6MjA5Nzg1ODYzM30.nVWNax8d5R3gVVSDfj8pyIpoaN4m9JWiIoRM8MkRF0E';
+
+    // Inicializace klienta
     this.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     // Prázdné pole, které se naplní z databáze
@@ -13,40 +17,44 @@ class CybersecurityScene extends Phaser.Scene {
     this.usedScenarios = [];
   }
 
-  // 👇 create() je nyní async, abychom mohli počkat na data ze Supabase
   async create() {
-    this.score = this.score || 0;
+    // Načtení celkového skóre z paměti
+    this.score = parseInt(localStorage.getItem('playerScore')) || 0;
 
-    // Vykreslíme úvodní menu (zatímco na pozadí můžeme stahovat data)
+    // Pokud v paměti není uloženo aktuální kolo této hry, nastavíme 1
+    if (!localStorage.getItem('dragDropRound')) {
+      localStorage.setItem('dragDropRound', 1);
+    }
+
+    // Vykreslíme úvodní menu (vycentrováno na 900x600)
     this.showStartMenu();
   }
 
   showStartMenu() {
-    this.overlay = this.add.rectangle(550, 300, 1100, 600, 0x000000, 0.7);
+    // Změna šířky na 900 podle nového plátna
+    this.overlay = this.add.rectangle(450, 300, 900, 600, 0x000000, 0.7);
 
-    const instructions = "Vítejte ve hře Sestav správné řešení!\n\nPřetáhni akce na správná čísla ve správném pořadí. \n\nPři kliknutí na přetaženou akci se akce vrátí zpátky na začátek";
+    const instructions = "Vítejte ve hře Sestav správné řešení!\n\nPřetáhni akce na správná čísla ve správném pořadí.\n\nPři kliknutí na přetaženou akci se akce vrátí zpátky na začátek.";
 
-    this.guideText = this.add.text(550, 250, instructions, {
-      fontSize: '26px',
+    this.guideText = this.add.text(450, 250, instructions, {
+      fontSize: '24px',
       fontFamily: 'Arial',
       color: '#f5f5f5',
       backgroundColor: 'rgba(40, 40, 60, 0.9)',
       padding: { x: 30, y: 20 },
       align: 'center',
-      wordWrap: { width: 800 },
+      wordWrap: { width: 700 },
       stroke: '#222244',
       strokeThickness: 3,
-      shadow: { offsetX: 2, offsetY: 2, color: '#000000', blur: 4, fill: true },
-      borderRadius: 15
+      shadow: { offsetX: 2, offsetY: 2, color: '#000000', blur: 4, fill: true }
     }).setOrigin(0.5);
 
-    this.startButton = this.add.text(550, 400, 'Začít hru', {
-      fontSize: '32px',
+    this.startButton = this.add.text(450, 420, 'Začít hru', {
+      fontSize: '30px',
       fontFamily: 'Arial',
       backgroundColor: '#1a73e8',
       color: '#ffffff',
       padding: { x: 30, y: 15 },
-      borderRadius: 20,
       fontStyle: 'bold',
       stroke: '#0c47a1',
       strokeThickness: 4,
@@ -58,7 +66,6 @@ class CybersecurityScene extends Phaser.Scene {
       this.guideText.setText('Načítám scénáře z databáze...');
 
       try {
-        // 2. Stažení dat z vaší Supabase tabulky DragDropScenarios
         const { data: dbScenarios, error } = await this.supabase
           .from('DragDropScenarios')
           .select('title, actions');
@@ -67,7 +74,6 @@ class CybersecurityScene extends Phaser.Scene {
 
         this.scenarios = dbScenarios;
 
-        // Úklid menu a start
         this.overlay.destroy();
         this.guideText.destroy();
         this.initGame();
@@ -85,10 +91,9 @@ class CybersecurityScene extends Phaser.Scene {
     this.originalPositions = new Map();
     this.dropAssignments = [];
 
-    // 3. Ošetření duplicity: Vybereme pouze ty scénáře, které hráč ještě nehrál
+    // Ošetření duplicity scénářů
     const remainingScenarios = this.scenarios.filter(s => !this.usedScenarios.includes(s));
 
-    // Pokud už odehrál všechny scénáře, vymažeme historii a jedeme odznova
     if (remainingScenarios.length === 0) {
       this.usedScenarios = [];
       this.currentScenario = Phaser.Utils.Array.GetRandom(this.scenarios);
@@ -96,26 +101,25 @@ class CybersecurityScene extends Phaser.Scene {
       this.currentScenario = Phaser.Utils.Array.GetRandom(remainingScenarios);
     }
 
-    // Uložíme aktuální scénář do pole použitých
     this.usedScenarios.push(this.currentScenario);
 
-    // Načtení správného pořadí (ze JSONB pole ze Supabase)
     this.correctOrder = [...this.currentScenario.actions];
     this.actionCount = this.correctOrder.length;
 
     const scrambledActions = Phaser.Utils.Array.Shuffle([...this.correctOrder]);
 
-    this.titleText = this.add.text(550, 40, this.currentScenario.title, {
-      fontSize: '24px', fill: '#ffffff', fontStyle: 'bold', stroke: '#000', strokeThickness: 2, align: 'center', wordWrap: { width: 800 }
+    // Vycentrování titulku scénáře na střed (450)
+    this.titleText = this.add.text(450, 45, this.currentScenario.title, {
+      fontSize: '22px', fill: '#ffffff', fontStyle: 'bold', stroke: '#000', strokeThickness: 2, align: 'center', wordWrap: { width: 800 }
     }).setOrigin(0.5);
 
     const actionStyle = {
-      fontSize: '16px', fill: '#eee', backgroundColor: '#223366', padding: { x: 15, y: 10 }, borderRadius: 8,
+      fontSize: '15px', fill: '#eee', backgroundColor: '#223366', padding: { x: 12, y: 8 },
       fontStyle: 'bold', stroke: '#000', strokeThickness: 2,
     };
 
     const numberStyle = {
-      fontSize: '24px', fill: '#ffffff', backgroundColor: '#664422', padding: { x: 15, y: 12 }, borderRadius: 10,
+      fontSize: '22px', fill: '#ffffff', backgroundColor: '#664422', padding: { x: 14, y: 10 },
       fontStyle: 'bold', stroke: '#000', strokeThickness: 3,
     };
 
@@ -123,12 +127,13 @@ class CybersecurityScene extends Phaser.Scene {
     this.dropAssignments = Array(this.actionCount).fill(null);
     this.numberLabels = [];
 
-    const numberX = 60;
-    const zoneX = 320;
-    const startY = 140;
-    const numberSpacing = 60;
-    const zoneWidth = 420;
-    const zoneHeight = 50;
+    // Upravené X pozice pro šířku plátna 900px
+    const numberX = 50;
+    const zoneX = 270; 
+    const startY = 130;
+    const numberSpacing = 65;
+    const zoneWidth = 360;
+    const zoneHeight = 48;
 
     for (let i = 0; i < this.actionCount; i++) {
       const y = startY + i * numberSpacing;
@@ -139,9 +144,10 @@ class CybersecurityScene extends Phaser.Scene {
       this.numberLabels.push(numberLabel);
     }
 
-    const rightX = 750;
-    const actionsStartY = 140;
-    const actionSpacing = 80;
+    // Pravý sloupec s neshuffled texty upraven na X = 690, aby se vešel do 900px okna
+    const rightX = 690;
+    const actionsStartY = 130;
+    const actionSpacing = 75;
 
     scrambledActions.forEach((action, i) => {
       const x = rightX;
@@ -149,6 +155,9 @@ class CybersecurityScene extends Phaser.Scene {
       const actionText = this.add.text(x, y, action, actionStyle)
         .setOrigin(0.5)
         .setInteractive({ useHandCursor: true });
+
+      // Omezení šířky textu na pravé straně, aby nepřetékal
+      actionText.setWordWrapWidth(360);
 
       this.input.setDraggable(actionText);
       this.actionTexts.push(actionText);
@@ -186,16 +195,14 @@ class CybersecurityScene extends Phaser.Scene {
       }
 
       this.dropAssignments[zoneIndex] = gameObject;
-      const marginX = 250;
       const labelRightEdge = numberLabel.x + numberLabel.displayWidth / 2;
-      const minGap = 20;
+      const minGap = 15;
 
-      gameObject.setWordWrapWidth(400);
+      gameObject.setWordWrapWidth(340); // wrap uzpůsobený velikosti zóny
       gameObject.x = labelRightEdge + gameObject.displayWidth / 2 + minGap;
       gameObject.y = numberLabel.y;
     });
 
-    // Kliknutí na usazenou akci ji vrátí zpět
     this.input.on('pointerdown', (pointer, gameObject) => {
       if (gameObject instanceof Phaser.GameObjects.Text && this.actionTexts.includes(gameObject)) {
         if (!this.submitted) {
@@ -205,8 +212,8 @@ class CybersecurityScene extends Phaser.Scene {
     });
 
     if (this.submitButton) this.submitButton.destroy();
-    this.submitButton = this.add.text(550, 540, "✅ Submit Answer", {
-      fontSize: '24px', backgroundColor: '#008800', color: '#fff', padding: { x: 20, y: 12 }, borderRadius: 10,
+    this.submitButton = this.add.text(450, 540, "✅ Submit Answer", {
+      fontSize: '22px', backgroundColor: '#008800', color: '#fff', padding: { x: 20, y: 12 },
       fontStyle: 'bold', stroke: '#004400', strokeThickness: 3,
     }).setInteractive({ useHandCursor: true }).setOrigin(0.5);
 
@@ -216,10 +223,10 @@ class CybersecurityScene extends Phaser.Scene {
       }
     });
 
-    if (this.scoreText) this.scoreText.setText(`Score: ${this.score}`);
+    if (this.scoreText) this.scoreText.setText(`Celkové skóre: ${this.score}`);
     else {
-      this.scoreText = this.add.text(50, 30, `Score: ${this.score}`, {
-        fontSize: '20px', fill: '#ffffff', fontStyle: 'bold', stroke: '#000', strokeThickness: 2,
+      this.scoreText = this.add.text(30, 20, `Celkové skóre: ${this.score}`, {
+        fontSize: '18px', fill: '#ffffff', fontStyle: 'bold', stroke: '#000', strokeThickness: 2,
       });
     }
   }
@@ -230,6 +237,9 @@ class CybersecurityScene extends Phaser.Scene {
         action.x = pos.x;
         action.y = pos.y;
     }
+    // Vrátíme původní wrap, pokud se text zmenšil pro dropzónu
+    action.setWordWrapWidth(360);
+
     for (let i = 0; i < this.dropAssignments.length; i++) {
       if (this.dropAssignments[i] === action) {
         this.dropAssignments[i] = null;
@@ -246,13 +256,13 @@ class CybersecurityScene extends Phaser.Scene {
 
     const incomplete = userOrder.includes(null);
     const sceneWidth = this.sys.game.config.width;
-    const feedbackY = 350;
+    const feedbackY = 320;
 
     if (incomplete) {
       const message = "⛔ Vyplň všechny odpovědi!";
-      const boxHeight = 150;
+      const boxHeight = 140;
 
-      this.feedbackBox = this.add.rectangle(sceneWidth / 2, feedbackY, 800, boxHeight, 0x000000, 0.9)
+      this.feedbackBox = this.add.rectangle(sceneWidth / 2, feedbackY, 700, boxHeight, 0x000000, 0.9)
         .setOrigin(0.5).setStrokeStyle(2, 0xffffff).setDepth(10);
 
       this.feedbackText = this.add.text(sceneWidth / 2, feedbackY - 20, message, {
@@ -260,7 +270,7 @@ class CybersecurityScene extends Phaser.Scene {
       }).setOrigin(0.5).setDepth(11);
 
       this.nextGameButton = this.add.text(sceneWidth / 2, feedbackY + 30, "Zavřít", {
-        fontSize: '22px', backgroundColor: '#990000', color: '#fff', fontStyle: 'bold', padding: { x: 20, y: 10 }, borderRadius: 10, stroke: '#330000', strokeThickness: 3,
+        fontSize: '20px', backgroundColor: '#990000', color: '#fff', fontStyle: 'bold', padding: { x: 20, y: 10 }, stroke: '#330000', strokeThickness: 3,
       }).setOrigin(0.5).setDepth(11).setInteractive({ useHandCursor: true });
 
       this.nextGameButton.on('pointerdown', () => {
@@ -290,37 +300,45 @@ class CybersecurityScene extends Phaser.Scene {
       points = 0;
     }
 
+    // Aktualizace skóre
     this.score += points;
-    this.scoreText.setText(`Score: ${this.score}`);
+    localStorage.setItem('playerScore', this.score);
+    this.scoreText.setText(`Celkové skóre: ${this.score}`);
+
+    // Načtení aktuálního kola Drag & Drop hry
+    let currentRound = parseInt(localStorage.getItem('dragDropRound')) || 1;
 
     const correctList = this.correctOrder.map((act, idx) => `${idx + 1}. ${act}`).join('\n');
-    const fullMessage = `${message}\n\nSprávné pořadí:\n${correctList}`;
+    
+    // Změna textu tlačítka na základě aktuálního kola
+    let nextButtonText = currentRound < 2 ? "Další kolo" : "Přejít na kvíz";
+    const fullMessage = `Kolo ${currentRound}/2\n${message}\n\nSprávné pořadí:\n${correctList}`;
 
     const lineCount = fullMessage.split('\n').length;
-    const lineHeight = 26;
-    const boxHeight = lineCount * lineHeight + 80;
+    const lineHeight = 24;
+    const boxHeight = lineCount * lineHeight + 90;
 
-    this.feedbackBox = this.add.rectangle(sceneWidth / 2, feedbackY, 1000, boxHeight, 0x000000, 0.85)
+    this.feedbackBox = this.add.rectangle(sceneWidth / 2, feedbackY, 820, boxHeight, 0x000000, 0.9)
       .setOrigin(0.5).setStrokeStyle(2, 0xffffff).setDepth(10);
 
-    this.feedbackText = this.add.text(sceneWidth / 2, feedbackY - 40, fullMessage, {
-      fontSize: '18px', color: '#ffffff', fontStyle: 'bold', align: 'center', wordWrap: { width: 950 }, lineSpacing: 6, stroke: '#000', strokeThickness: 2, padding: { x: 10, y: 10 }
+    this.feedbackText = this.add.text(sceneWidth / 2, feedbackY - 30, fullMessage, {
+      fontSize: '16px', color: '#ffffff', fontStyle: 'bold', align: 'center', wordWrap: { width: 780 }, lineSpacing: 5, stroke: '#000', strokeThickness: 2, padding: { x: 10, y: 10 }
     }).setOrigin(0.5).setDepth(11);
 
-    this.nextGameButton = this.add.text(sceneWidth / 2, feedbackY + boxHeight / 2 - 30, "Další hra", {
-      fontSize: '22px', backgroundColor: '#005500', color: '#fff', fontStyle: 'bold', padding: { x: 20, y: 10 }, borderRadius: 10, stroke: '#003300', strokeThickness: 3,
+    this.nextGameButton = this.add.text(sceneWidth / 2, feedbackY + boxHeight / 2 - 35, nextButtonText, {
+      fontSize: '20px', backgroundColor: '#005500', color: '#fff', fontStyle: 'bold', padding: { x: 20, y: 10 }, stroke: '#003300', strokeThickness: 3,
     }).setOrigin(0.5).setDepth(11).setInteractive({ useHandCursor: true });
 
     this.nextGameButton.on('pointerdown', () => {
-      if (localStorage.getItem('playerScore') !== null) {
-        let current = parseInt(localStorage.getItem('playerScore'));
-        localStorage.setItem('playerScore', current + points);
+      if (currentRound < 2) {
+        // Postup do 2. kola
+        localStorage.setItem('dragDropRound', currentRound + 1);
+        this.restartGame();
       } else {
-        localStorage.setItem('playerScore', points);
+        // Konec 2. kola -> smazat round counter hry a jít na kvíz
+        localStorage.removeItem('dragDropRound');
+        window.location.href = 'quizFight.html';
       }
-
-      // Spustí další kolo hry očištěné od starých assetů
-      this.restartGame();
     });
 
     this.submitted = true;
@@ -345,12 +363,13 @@ class CybersecurityScene extends Phaser.Scene {
   }
 }
 
+// Konfigurační blok upraven pro 900x600 podle HTML containeru
 const config = {
   type: Phaser.AUTO,
-  width: 1100,
+  width: 900,
   height: 600,
   backgroundColor: '#1a1a2e',
-  scene: [CybersecurityScene]
+  scene: [DragDropScene]
 };
 
 const game = new Phaser.Game(config);
