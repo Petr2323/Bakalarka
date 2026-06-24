@@ -1,72 +1,113 @@
 <!DOCTYPE html>
 <html lang="cs">
-
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Kyberbezpečnostní hry</title>
   <style>
+    :root {
+      --bg-color: #1a1a2e;
+      --panel-bg: #242442;
+      --accent-color: #6441a5;
+      --hover-color: #7a53c7;
+      --text-color: #e2e8f0;
+    }
+
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+      margin: 0;
       padding: 20px;
-      background-color: #f2f2f2;
-      color: #333;
-      max-width: 800px;
-      margin: auto;
+    }
+
+    .container {
+      background: var(--panel-bg);
+      padding: 40px;
+      border-radius: 15px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
       text-align: center;
+      max-width: 500px;
+      width: 100%;
+      border: 1px solid #3e3e66;
     }
 
     h1 {
-      color: #0073e6;
+      font-size: 2.5rem;
+      margin-bottom: 20px;
+      color: #ffffff;
+      text-transform: uppercase;
+      letter-spacing: 2px;
     }
 
     .intro {
-      font-size: 18px;
-      margin: 20px 0 30px;
+      font-size: 1.1rem;
+      margin-bottom: 30px;
+      color: #b3b3d9;
     }
 
     .menu {
       display: flex;
       flex-direction: column;
-      gap: 20px;
-      align-items: center;
+      gap: 15px;
     }
 
     .menu button {
-      padding: 12px 30px;
-      font-size: 18px;
-      background-color: #007BFF;
+      padding: 15px 30px;
+      font-size: 1.2rem;
+      font-weight: bold;
+      background-color: var(--accent-color);
       color: white;
       border: none;
       border-radius: 8px;
       cursor: pointer;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      transition: background-color 0.3s ease, transform 0.2s ease;
+      transition: all 0.3s ease;
+      box-shadow: 0 4px 10px rgba(100, 65, 165, 0.3);
     }
 
     .menu button:hover {
-      background-color: #0056b3;
-      transform: scale(1.05);
+      background-color: var(--hover-color);
+      transform: translateY(-3px);
+      box-shadow: 0 6px 15px rgba(100, 65, 165, 0.5);
+    }
+
+    .menu button.help {
+      background-color: transparent;
+      border: 2px solid var(--accent-color);
+    }
+
+    .menu button.help:hover {
+      background-color: var(--accent-color);
     }
   </style>
 </head>
 
 <body>
 
-  <h1>Kyberbezpečnostní hry</h1>
-  <p class="intro">
-    Než začneš hrát, doporučuji si nejprve přečíst sekci <strong>Nápověda</strong>, kde najdeš důležité informace ke hře.
-  </p>
+  <div class="container">
+    <h1>CyberQuest</h1>
+    <p class="intro">
+      Otestuj své znalosti a nenech se napálit. 
+      Doporučujeme začít sekcí <strong>Nápověda</strong>.
+    </p>
 
-  <div class="menu">
-    <button onclick="location.href='emailGame.html'">🎮 Začni hrát</button>
-    <button onclick="location.href='tutorial.html'">📘 Nápověda</button>
+    <div class="menu">
+      <button onclick="location.href='emailGame.html'">🎮 Začni hrát</button>
+      <button class="help" onclick="location.href='tutorial.html'">📘 Nápověda</button>
+    </div>
   </div>
 
   <script>
-    if (localStorage.getItem('playerScore') !== null) localStorage.removeItem('playerScore');
+    // Reset skóre při návratu do hlavního menu
+    if (localStorage.getItem('playerScore') !== null) {
+      localStorage.removeItem('playerScore');
+    }
   </script>
 
 </body>
-
 </html>

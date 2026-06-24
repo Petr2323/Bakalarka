@@ -5,37 +5,48 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Kyberbezpečnostní tutoriál</title>
   <style>
+    :root {
+      --bg-color: #1a1a2e;
+      --panel-bg: #242442;
+      --accent-color: #6441a5;
+      --text-color: #e2e8f0;
+      --good-color: #4CAF50;
+      --bad-color: #f44336;
+      --term-bg: #3a345e;
+    }
+
     body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
-      background-color: #f2f2f2;
-      color: #333;
-      max-width: 800px;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      padding: 30px 20px;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      max-width: 900px;
       margin: auto;
+      line-height: 1.6;
     }
-    h1, h2 {
-      color: #0073e6;
-    }
-    .example {
-      background: #ffffff;
-      border-left: 6px solid #0073e6;
-      padding: 10px 15px;
-      margin-bottom: 15px;
-    }
-    .good {
-      border-color: green;
-    }
-    .bad {
-      border-color: red;
-    }
-    .term {
-      background-color: #e6f2ff;
-      padding: 5px;
-      display: inline-block;
-      margin: 5px 0;
-      border-radius: 4px;
-      font-weight: bold;
-    }
+
+    h1, h2, h3 { color: #ffffff; border-bottom: 2px solid var(--accent-color); padding-bottom: 8px; }
+    h1 { text-align: center; font-size: 2.5rem; margin-bottom: 40px; text-transform: uppercase; border-bottom: none; text-shadow: 0 0 10px rgba(100, 65, 165, 0.5); }
+
+    .terms-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 15px; margin-bottom: 30px; }
+    .term-box { background: var(--panel-bg); padding: 15px; border-radius: 8px; border: 1px solid #3e3e66; }
+    .term { background-color: var(--term-bg); padding: 4px 8px; border-radius: 4px; font-weight: bold; color: #d8caff; display: inline-block; margin-bottom: 8px; }
+
+    .example { background: var(--panel-bg); border-left: 6px solid var(--accent-color); padding: 20px; margin-bottom: 20px; border-radius: 0 8px 8px 0; box-shadow: 0 4px 6px rgba(0,0,0,0.2); }
+    .good { border-color: var(--good-color); }
+    .bad { border-color: var(--bad-color); }
+    .good-title { color: var(--good-color); font-weight: bold; }
+    .bad-title { color: var(--bad-color); font-weight: bold; }
+
+    code { background: #111122; padding: 3px 6px; border-radius: 4px; font-family: 'Courier New', Courier, monospace; color: #ff79c6; }
+    table { width: 100%; border-collapse: collapse; margin: 20px 0; background: var(--panel-bg); border-radius: 8px; overflow: hidden; }
+    th, td { padding: 12px 15px; text-align: left; }
+    th { background-color: var(--accent-color); color: white; }
+    tr:nth-child(even) { background-color: #2c2c54; }
+
+    .password-method { background: #2a2a4a; padding: 15px; border-radius: 8px; border-left: 4px solid #00bcd4; margin-top: 15px; }
+    .start-button { display: block; margin: 50px auto 0 auto; padding: 15px 40px; font-size: 20px; font-weight: bold; background-color: var(--accent-color); color: white; border: none; border-radius: 8px; cursor: pointer; transition: all 0.3s ease; }
+    .start-button:hover { background-color: #7a53c7; transform: translateY(-3px); }
   </style>
 </head>
 <body>
@@ -43,108 +54,56 @@
   <h1>Tutoriál ke hře: Buď kyberbezpečný!</h1>
 
   <h2>🔑 Klíčové pojmy</h2>
-  <p><span class="term">Phishing</span> – Podvodný pokus vylákat z tebe heslo nebo jiné citlivé údaje přes e-mail, zprávu či falešnou webovou stránku.</p>
-  <p><span class="term">Silné heslo</span> – Heslo, které je těžké uhodnout. Obsahuje malá i velká písmena, čísla a speciální znaky.</p>
-  <p><span class="term">Ověřený účet</span> – Známý a důvěryhodný uživatel, například kamarád, kterého znáš osobně či oficiální podpora e-mailu či školní e-mail, který je dostupný v kontaktech na stránkách školy.</p>
-  <p><span class="term">Podezřelý odkaz</span> – Odkaz, který vede na neznámou nebo podivnou stránku. Může být nebezpečný.</p>
-  <p><span class="term">Ransomware</span> – Typ viru, který ti zablokuje počítač nebo soubory a požaduje zaplacení výkupného.</p>
-  <p><span class="term">Trojský kůň</span> – Program či aplikace, který vypadá neškodně, často se skrývá ve videohrách. Ale uvnitř skrývá škodlivý kód, který ti může ukrást data nebo poškodit zařízení.</p>
-  <p><span class="term">Spam</span> – Nevyžádané zprávy, často reklamní nebo podvodné, které ti zahlcují e-mail nebo chat.</p>
-
-<h2>📌 Příklady podezřelých adres</h2>
-
-<div class="example bad">
-  <strong>Odkaz:</strong> <code>http://free-iph0ne-vyhra.ru/login</code><br>
-  <em>Proč je podezřelý?</em> Podezřelá doména (.ru), divný tvar slova "iphone" a nabídka zdarma – typický znak podvodu.
-</div>
-
-<div class="example bad">
-  <strong>Odkaz:</strong> <code>https://www.seznam.cz-login.com</code><br>
-  <em>Proč je podezřelý?</em> Na první pohled vypadá jako Seznam.cz, ale je to podvodná stránka. Opravdová doména je <strong>seznam.cz</strong>, ne <strong>cz-login.com</strong>. To je trik útočníků!
-</div>
-
-<h2>📧 Příklad podezřelého e-mailu</h2>
-
-<div class="example bad">
-  <strong>Odesílatel:</strong> <code>bezpecnost@seznam-bezpecnost.cz</code><br>
-  <strong>Předmět:</strong> Vaše heslo bylo napadeno – změňte ho ihned!<br><br>
-  <strong>Zpráva:</strong><br>
-  Vážený uživateli,<br>
-  zjistili jsme neobvyklou aktivitu na vašem účtu. Klikněte na následující odkaz a změňte si heslo: <br>
-  https://seznam-cz-bezpecnost.site/reset<br><br>
-
-  <em>Co je na tom podezřelé?</em>
-  <ul>
-    <li>Adresa odesílatele nevypadá jako oficiální (není @seznam.cz).</li>
-    <li>Působí naléhavě a snaží se tě vystrašit.</li>
-    <li>Odkaz vede na podivnou doménu, ne na <strong>seznam.cz</strong>.</li>
-    <li>Oficiální firmy tě nikdy nevyzývají ke změně hesla tímto způsobem.</li>
-  </ul>
-</div>
-
-  <h2>✅ Správné a špatné odpovědi</h2>
-
-  <div class="example good">
-    <strong>Otázka:</strong> Tvůj "kamarád" ti poslal odkaz na soutěž o nový telefon. Co uděláš?<br>
-    <strong>Správná odpověď:</strong> Zkontroluji, jestli je to důvěryhodný odkaz. Pokud ne, neklikám.<br>
-    <em>Proč?</em> Může jít o phishing nebo virus.
+  <div class="terms-grid">
+    <div class="term-box"><span class="term">Phishing</span><p>Podvodný pokus vylákat z tebe heslo nebo údaje přes e-mail, zprávu či falešnou webovou stránku.</p></div>
+    <div class="term-box"><span class="term">Silné heslo</span><p>Heslo, které je těžké uhodnout. Obsahuje malá i velká písmena, čísla a speciální znaky.</p></div>
+    <div class="term-box"><span class="term">Ověřený účet</span><p>Známý a důvěryhodný uživatel, například kamarád či oficiální podpora.</p></div>
+    <div class="term-box"><span class="term">Podezřelý odkaz</span><p>Odkaz, který vede na neznámou stránku. Může být nebezpečný.</p></div>
+    <div class="term-box"><span class="term">Ransomware</span><p>Typ viru, který ti zablokuje počítač nebo soubory a požaduje zaplacení výkupného.</p></div>
+    <div class="term-box"><span class="term">Trojský kůň</span><p>Program, který vypadá neškodně (např. ve hře), ale skrývá škodlivý kód, který ti může ukrást data.</p></div>
+    <div class="term-box"><span class="term">Spam</span><p>Nevyžádané zprávy, často reklamní nebo podvodné, které zahlcují e-mail nebo chat.</p></div>
   </div>
 
+  <h2>🦠 Malware: Viry, červi a další hrozby</h2>
+  <p><strong>Malware</strong> je souhrnný název pro jakýkoliv škodlivý software. Rozlišujeme mezi nimi podle toho, jak se šíří:</p>
+  <div class="terms-grid">
+    <div class="term-box"><span class="term">Virus</span><p>Potřebuje se připojit k jiné aplikaci nebo souboru. Když spustíš nakažený soubor, virus se probudí.</p></div>
+    <div class="term-box"><span class="term">Červ (Worm)</span><p>Samostatný program. Nepotřebuje hostitele, šíří se sítí automaticky z počítače na počítač.</p></div>
+  </div>
+  <div class="example">
+    <em>Srovnání:</em> Virus je jako nakažený předmět, kterého se musíš dotknout. Červ je jako blesková nákaza v síti, která se šíří sama bez tvého přičinění.
+  </div>
+
+  <h2>💡 Jak vytvořit silné heslo?</h2>
+  <p>Dnešní systémy potřebují delší hesla. Nejlepší je tzv. <strong>přístupová fráze</strong>.</p>
+  <table>
+    <thead><tr><th>Typ</th><th>Příklad</th><th>Hodnocení</th></tr></thead>
+    <tbody>
+      <tr><td class="bad-title">Slabé</td><td><code>123456</code> / <code>jmeno123</code></td><td>❌ Okamžitě prolomeno</td></tr>
+      <tr><td class="good-title">Silné</td><td><code>N3jlep$1_H3sl0!</code></td><td>✅ Bezpečné</td></tr>
+      <tr><td class="good-title">Fráze</td><td><code>traktor-koláč-modrá-vysoko</code></td><td>🛡️ Neprůstřelné</td></tr>
+    </tbody>
+  </table>
+  <div class="password-method">
+    <strong>Trik:</strong> Vezmi větu "<u>P</u>oslala <u>b</u>abička <u>d</u>opisy <u>v</u>šem <u>t</u>řem <u>k</u>amarádům!" a vytvoř: <code>Pbdvtk!2026</code>
+  </div>
+
+  <h2>📌 Příklady podezřelých adres</h2>
+  <div class="example bad"><strong>Odkaz:</strong> <code>http://free-iph0ne-vyhra.ru/login</code><br><em>Proč?</em> Podezřelá doména (.ru), divný tvar slova "iphone" a nabídka zdarma.</div>
+  <div class="example bad"><strong>Odkaz:</strong> <code>https://www.seznam.cz-login.com</code><br><em>Proč?</em> Vypadá jako Seznam, ale doména je <code>cz-login.com</code>. To je trik útočníků!</div>
+
+  <h2>📧 Příklad podezřelého e-mailu</h2>
   <div class="example bad">
-    <strong>Špatná odpověď:</strong> Kliknu na odkaz a vyplním údaje.<br>
-    <em>Proč je to špatně?</em> Neověřený odkaz může ukrást tvoje údaje.
+    <strong>Odesílatel:</strong> <code>bezpecnost@seznam-bezpecnost.cz</code><br>
+    <strong>Zpráva:</strong> "Zjistili jsme neobvyklou aktivitu... změňte heslo na: <code>https://seznam-cz-bezpecnost.site/reset</code>"<br>
+    <em>Co je špatně?</em> Odesílatel není @seznam.cz, působí to naléhavě a odkaz vede na pochybnou doménu.
   </div>
 
-  <div class="example good">
-    <strong>Otázka:</strong> Vybíráš si nové heslo. Které zvolíš?<br>
-    <strong>Správná odpověď:</strong> N3jlep$1_H3sl0!<br>
-    <em>Proč?</em> Obsahuje kombinaci písmen, čísel a znaků.
-  </div>
+  <h2>✅ Správné a špatné reakce</h2>
+  <div class="example good"><strong>Situace:</strong> Někdo chce heslo ke hře a říká, že je admin.<br><strong>Správně:</strong> Nikomu heslo neříkám. Admin ho po tobě nikdy chtít nebude!</div>
+  <div class="example bad"><strong>Situace:</strong> "Kamarád" pošle odkaz na soutěž o telefon.<br><strong>Špatně:</strong> Kliknu a vyplním údaje. (Může jít o phishing!)</div>
 
-  <div class="example bad">
-    <strong>Špatná odpověď:</strong> 123456 nebo jmeno123<br>
-    <em>Proč je to špatně?</em> Tato hesla jsou příliš jednoduchá a snadno uhodnutelná.
-  </div>
-
-  <div class="example good">
-    <strong>Otázka:</strong> Někdo neznámý ti píše přes chat a chce znát tvoje heslo ke hře. Prý je administrátor.<br>
-    <strong>Správná odpověď:</strong> Nikomu neříkám své heslo.<br>
-    <em>Proč?</em> Heslo je soukromé a nikdo jiný ho nepotřebuje znát.
-  </div>
-
-  <div class="example bad">
-    <strong>Špatná odpověď:</strong> Pošlu mu heslo, protože říká, že je administrátor.<br>
-    <em>Proč je to špatně?</em> Skutečný administrátor tě nikdy nebude žádat o heslo.
-  </div>
-
-  <h2>🎮 Hodně štěstí a bav se při hraní!</h2>
-
-  <style>
-    .start-button {
-      display: block;
-      margin: 40px auto 0 auto;
-      padding: 12px 30px;
-      font-size: 18px;
-      background-color: #007BFF;
-      color: white;
-      border: none;
-      border-radius: 8px;
-      cursor: pointer;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
-      transition: background-color 0.3s ease, transform 0.2s ease;
-    }
-  
-    .start-button:hover {
-      background-color: #0056b3;
-      transform: scale(1.05);
-    }
-  </style>
-  
-  <button class="start-button" onclick="window.location.href='index.html'">
-    Vrátit se do menu
-  </button>
-  
-  
+  <button class="start-button" onclick="window.location.href='index.html'">Vrátit se do menu</button>
 
 </body>
 </html>
