@@ -5,55 +5,28 @@ class TitleScene extends Phaser.Scene {
     }
 
     create() {
-        // Pozadí úvodní scény (stejná barva jako hra)
         this.add.rectangle(0, 0, 900, 600, 0x1a1a2e).setOrigin(0);
-
-        // Ohraničení boxu s instrukcemi
         this.add.rectangle(50, 50, 800, 500, 0x1a1a2e).setOrigin(0).setStrokeStyle(2, 0x6441a5);
 
-        // Nadpis
         this.add.text(450, 120, 'Messenger game', {
-            fontSize: '40px',
-            color: '#f0e6ff',
-            fontStyle: 'bold',
-            fontFamily: '"Segoe UI Mono", monospace'
+            fontSize: '40px', color: '#f0e6ff', fontStyle: 'bold', fontFamily: '"Segoe UI Mono", monospace'
         }).setOrigin(0.5);
 
-        // Instrukce/Text co dělat
-        const instructionsText = 
-            "Tvým úkolem je pomoci kamarádovi v chatu činit správná a bezpečná rozhodnutí na internetu.\n\n" +
+        const instructionsText = "Tvým úkolem je pomoci kamarádovi v chatu činit správná a bezpečná rozhodnutí na internetu.\n\n" +
             "Čti pozorně jeho zprávy a vyber nejlepší možnou odpověď. Za správná rozhodnutí získáváš body.\n\n" +
             "Kliknutím na tlačítko OK spustíš simulaci chatu.";
 
         this.add.text(450, 280, instructionsText, {
-            fontSize: '20px',
-            color: '#d8caff',
-            fontFamily: '"Segoe UI Mono", monospace',
-            wordWrap: { width: 700 },
-            align: 'center'
+            fontSize: '20px', color: '#d8caff', fontFamily: '"Segoe UI Mono", monospace', wordWrap: { width: 700 }, align: 'center'
         }).setOrigin(0.5);
 
-        // Tlačítko OK
         const okBtn = this.add.text(450, 460, 'OK', {
-            fontSize: '32px',
-            backgroundColor: '#5a4dcf',
-            color: '#f0e6ff',
-            padding: { x: 40, y: 15 },
-            fontStyle: 'bold',
-            stroke: '#3a2c8d',
-            strokeThickness: 3,
-            align: 'center',
-            fontFamily: '"Segoe UI Mono", monospace'
+            fontSize: '32px', backgroundColor: '#5a4dcf', color: '#f0e6ff', padding: { x: 40, y: 15 }, fontStyle: 'bold', stroke: '#3a2c8d', strokeThickness: 3, align: 'center', fontFamily: '"Segoe UI Mono", monospace'
         }).setOrigin(0.5).setInteractive({ useHandCursor: true });
 
-        // Efekty při najetí myši a kliknutí pro spuštění hry
         okBtn.on('pointerover', () => okBtn.setStyle({ backgroundColor: '#7a69ff' }));
         okBtn.on('pointerout', () => okBtn.setStyle({ backgroundColor: '#5a4dcf' }));
-        
-        okBtn.on('pointerdown', () => {
-            // Spustí herní scénu a vypne tuto úvodní
-            this.scene.start('ChatScene');
-        });
+        okBtn.on('pointerdown', () => this.scene.start('ChatScene'));
     }
 }
 
@@ -65,333 +38,159 @@ class ChatScene extends Phaser.Scene {
         this.maxScore = 3;
         this.currentNode = 'start';
         this.chatHeight = 0;
+
+        // Inicializace Supabase - doplňte své údaje
+        // 1. Správná HTTP URL adresa
+        const SUPABASE_URL = 'https://fejkfjyoqrnqryqrlljy.supabase.co';
+
+        // 2. Anonymní API klíč
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImZlamtmanlvcXJucXJ5cXJsbGp5Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODIyODI2MzMsImV4cCI6MjA5Nzg1ODYzM30.nVWNax8d5R3gVVSDfj8pyIpoaN4m9JWiIoRM8MkRF0E';
+
+        // Inicializace klienta
+        this.supabase = supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
     }
 
-    create() {
-        // Background of chat area (for clarity)
+    async create() {
         this.add.rectangle(20, 20, 840, 410, 0x1a1a2e).setOrigin(0).setStrokeStyle(2, 0x6441a5);
-
-        // Chat container for messages
         this.chatContainer = this.add.container(20, 20);
-
-        // Mask for chat container so messages don't overflow
+        
         const shape = this.make.graphics();
         shape.fillRect(20, 20, 840, 410);
         this.chatContainer.setMask(new Phaser.Display.Masks.GeometryMask(this, shape));
 
-        // Response buttons container (for player answers)
         this.responseButtons = this.add.container(20, 450);
-
-        // Scroll buttons container (arrow up/down) - placed right side of response buttons
         this.scrollButtons = this.add.container(860, 337);
 
-        // Create scroll up button (arrow up)
-        const upBtn = this.add.text(0, 0, '▲', {
-            fontSize: '32px',
-            backgroundColor: '#5a4dcf',
-            color: '#f0e6ff',
-            padding: { x: 10, y: 5 },
-            fontStyle: 'bold',
-            stroke: '#3a2c8d',
-            strokeThickness: 3,
-            align: 'center',
-        }).setInteractive({ useHandCursor: true });
+        // --- PŮVODNÍ DATA JAKO FALLBACK ---
+        const fallbackTrees = { phishing_tree: {
+            start: {
+                friend: "Ahoj! Právě mi přišel e-mail od 'Školní IT podpory', že si mám změnit heslo. Klikl/a bys na ten odkaz?",
+                responses: [
+                    { text: "Ne, je to divný 🧐", next: "tree1_correct1", points: 1 },
+                    { text: "Jo, zní to důležitě, kliknul bych na něj. 👀", next: "tree1_wrong1" }
+                ]
+            },
+            tree1_correct1: {
+                friend: "Brácha mi říká, že by na to kliknul 😅",
+                responses: [
+                    { text: "Neposlouchej ho, zkontroluj si den e-mail, jestli je fakt školní, měl by být na stránkách školy. 😞", next: "tree1_correct2", points: 1 },
+                    { text: "Když to říká, tak to zkus 🤔", next: "tree1_endBad" }
+                ]
+            },
+            tree1_correct2: {
+                friend: "Dobře! Vypadá to podezřele. Radši to nebudu otevírat. 📛",
+                responses: [
+                    { text: "Jo, vždycky lepší se zeptat, já se vyznám ✅", next: "tree1_end", points: 1 },
+                    { text: "Tak ať to otevře brácha, bude to na něj 😈", next: "tree1_endBad" }
+                ]
+            },
+            tree1_wrong1: {
+                friend: "O ou... počkej! Možná to byl falešný e-mail! 😰",
+                responses: [
+                    { text: "Sakra, tak poučení pro příště 😓", next: "tree1_end", points: 1 },
+                    { text: "To bude v pohodě, co se může stát? 😅", next: "tree1_endBad" }
+                ]
+            },
+            tree1_end: {
+                friend: "Díky za pomoc, kámo 🏅",
+                responses: [],
+                end: true
+            },
+            tree1_endBad: {
+                friend: "Teď už mají moje heslo, nedostanu se na účet. Psal jsem IT učiteli, prý mi zítra účet resetují 😟",
+                responses: [],
+                end: true
+            }
+        },
+        youtube_safe_tree: {
+            start: {
+                friend: "Kámo, koukni na tohle video! 📺 https://www.youtube.com/watch?v=dQw4w9WgXcQ",
+                responses: [
+                    { text: "Ok, podívám se 🎬", next: "tree2_correct1", points: 1 },
+                    { text: "Nevím, radši nekliknu na odkaz. 😬", next: "tree2_safe" }
+                ]
+            },
+            tree2_correct1: {
+                friend: "Vím že je to starý, ale pořád dobrý 😂",
+                responses: [
+                    { text: "RickRolled. Dostal si mě 🤣", next: "tree2_correct2", points: 1 },
+                    { text: "RickRolled. Máš ještě nějaký vtípek? 🤣", next: "tree2_correct2", points: 1 }
+                ]
+            },
+            tree2_correct2: {
+                friend: "Máš něco pro mě na zasmání?",
+                responses: [
+                    { text: "*poslat odkaz na stránku s matematickými příklady", next: "tree2_endSad", points: 1},
+                    { text: "*poslat srandovní video", next: "tree2_end", points: 1 }
+                ]
+            },
+            tree2_safe: {
+                friend: "No tak, podívej se, věř mi, tohle je fakt jen sranda. 😄",
+                responses: [
+                    { text: "Tak jo, kliknu teda. 🎬", next: "tree2_endRolled", points: 1 },
+                    { text: "I tak nechci riskovat. 🙅", next: "tree2_endBad" }
+                ]
+            },
+            tree2_end: {
+                friend: "😊",
+                responses: [],
+                end: true
+            },
+            tree2_endSad: {
+                friend: "Tak jo, vyhrál/a jsi 😊. Tohle jsem nečekal 😄",
+                responses: [],
+                end: true
+            },
+            tree2_endRolled: {
+                friend: "RickRolled, dostal jsem tě 😊",
+                responses: [],
+                end: true
+            },
+            tree2_endBad: {
+                friend: "Tak už ti nic nepošlu. Uvidíme se zítra 😟",
+                responses: [],
+                end: true
+            }
+        } };
 
-        upBtn.on('pointerdown', () => this.scrollChatBy(100));  
-        upBtn.on('pointerover', () => upBtn.setStyle({ backgroundColor: '#7a69ff' }));
-        upBtn.on('pointerout', () => upBtn.setStyle({ backgroundColor: '#5a4dcf' }));
+        const loadingText = this.add.text(450, 220, "Načítám scénáře...", { fontSize: '24px', fill: '#ffffff' }).setOrigin(0.5);
 
+        try {
+            const { data, error } = await this.supabase
+                .from('ChatTrees')
+                .select('tree_name, tree_data')
+                .limit(1);
+
+            if (error || !data || data.length === 0) throw new Error('DB chyba');
+            this.allTrees = data[0].tree_data;
+        } catch (err) {
+            console.warn('Používám lokální data:', err);
+            this.allTrees = fallbackTrees;
+        }
+
+        loadingText.destroy();
+        this.dialogueTree = this.allTrees[Phaser.Math.RND.pick(Object.keys(this.allTrees))];
+
+        // Tlačítka posunu
+        const upBtn = this.add.text(0, 0, '▲', { fontSize: '32px', backgroundColor: '#5a4dcf', color: '#f0e6ff', padding: { x: 10, y: 5 } }).setInteractive({ useHandCursor: true });
+        upBtn.on('pointerdown', () => this.scrollChatBy(100));
         this.scrollButtons.add(upBtn);
 
-        // Create scroll down button (arrow down)
-        const downBtn = this.add.text(0, 50, '▼', {
-            fontSize: '32px',
-            backgroundColor: '#5a4dcf',
-            color: '#f0e6ff',
-            padding: { x: 10, y: 5 },
-            fontStyle: 'bold',
-            stroke: '#3a2c8d',
-            strokeThickness: 3,
-            align: 'center',
-        }).setInteractive({ useHandCursor: true });
-
-        downBtn.on('pointerdown', () => this.scrollChatBy(-100)); 
-        downBtn.on('pointerover', () => downBtn.setStyle({ backgroundColor: '#7a69ff' }));
-        downBtn.on('pointerout', () => downBtn.setStyle({ backgroundColor: '#5a4dcf' }));
-
+        const downBtn = this.add.text(0, 50, '▼', { fontSize: '32px', backgroundColor: '#5a4dcf', color: '#f0e6ff', padding: { x: 10, y: 5 } }).setInteractive({ useHandCursor: true });
+        downBtn.on('pointerdown', () => this.scrollChatBy(-100));
         this.scrollButtons.add(downBtn);
-
-        const allTrees = {
-            phishing_tree: {
-                start: {
-                    friend: "Ahoj! Právě mi přišel e-mail od 'Školní IT podpory', že si mám změnit heslo. Klikl/a bys na ten odkaz?",
-                    responses: [
-                        { text: "Ne, je to divný 🧐", next: "tree1_correct1", points: 1 },
-                        { text: "Jo, zní to důležitě, kliknul bych na něj. 👀", next: "tree1_wrong1" }
-                    ]
-                },
-                tree1_correct1: {
-                    friend: "Brácha mi říká, že by na to kliknul 😅",
-                    responses: [
-                        { text: "Neposlouchej ho, zkontroluj si den e-mail, jestli je fakt školní, měl by být na stránkách školy. 😞", next: "tree1_correct2", points: 1 },
-                        { text: "Když to říká, tak to zkus 🤔", next: "tree1_endBad" }
-                    ]
-                },
-                tree1_correct2: {
-                    friend: "Dobře! Vypadá to podezřele. Radši to nebudu otevírat. 📛",
-                    responses: [
-                        { text: "Jo, vždycky lepší se zeptat, já se vyznám ✅", next: "tree1_end", points: 1 },
-                        { text: "Tak ať to otevře brácha, bude to na něj 😈", next: "tree1_endBad" }
-                    ]
-                },
-                tree1_wrong1: {
-                    friend: "O ou... počkej! Možná to byl falešný e-mail! 😰",
-                    responses: [
-                        { text: "Sakra, tak poučení pro příště 😓", next: "tree1_end", points: 1 },
-                        { text: "To bude v pohodě, co se může stát? 😅", next: "tree1_endBad" }
-                    ]
-                },
-                tree1_end: {
-                    friend: "Díky za pomoc, kámo 🏅",
-                    responses: [],
-                    end: true
-                },
-                tree1_endBad: {
-                    friend: "Teď už mají moje heslo, nedostanu se na účet. Psal jsem IT učiteli, prý mi zítra účet resetují 😟",
-                    responses: [],
-                    end: true
-                }
-            },
-            youtube_safe_tree: {
-                start: {
-                    friend: "Kámo, koukni na tohle video! 📺 https://www.youtube.com/watch?v=dQw4w9WgXcQ",
-                    responses: [
-                        { text: "Ok, podívám se 🎬", next: "tree2_correct1", points: 1 },
-                        { text: "Nevím, radši nekliknu na odkaz. 😬", next: "tree2_safe" }
-                    ]
-                },
-                tree2_correct1: {
-                    friend: "Vím že je to starý, ale pořád dobrý 😂",
-                    responses: [
-                        { text: "RickRolled. Dostal si mě 🤣", next: "tree2_correct2", points: 1 },
-                        { text: "RickRolled. Máš ještě nějaký vtípek? 🤣", next: "tree2_correct2", points: 1 }
-                    ]
-                },
-                tree2_correct2: {
-                    friend: "Máš něco pro mě na zasmání?",
-                    responses: [
-                        { text: "*poslat odkaz na stránku s matematickými příklady", next: "tree2_endSad", points: 1},
-                        { text: "*poslat srandovní video", next: "tree2_end", points: 1 }
-                    ]
-                },
-                tree2_safe: {
-                    friend: "No tak, podívej se, věř mi, tohle je fakt jen sranda. 😄",
-                    responses: [
-                        { text: "Tak jo, kliknu teda. 🎬", next: "tree2_endRolled", points: 1 },
-                        { text: "I tak nechci riskovat. 🙅", next: "tree2_endBad" }
-                    ]
-                },
-                tree2_end: {
-                    friend: "😊",
-                    responses: [],
-                    end: true
-                },
-                tree2_endSad: {
-                    friend: "Tak jo, vyhrál/a jsi 😊. Tohle jsem nečekal 😄",
-                    responses: [],
-                    end: true
-                },
-                tree2_endRolled: {
-                    friend: "RickRolled, dostal jsem tě 😊",
-                    responses: [],
-                    end: true
-                },
-                tree2_endBad: {
-                    friend: "Tak už ti nic nepošlu. Uvidíme se zítra 😟",
-                    responses: [],
-                    end: true
-                }
-            },
-            personal_info_tree: {
-                start: {
-                    friend: "Hele, do jedný hry chtějí, abych zadal svoje celé jméno, adresu a telefon. Mám to tam dát?",
-                    responses: [
-                        { text: "Ne! To bych neudělal/a!", next: "tree3_correct1", points: 1 },
-                        { text: "Asi jo, když to chtějí... 🤷", next: "tree3_wrong1" }
-                    ]
-                },
-                tree3_correct1: {
-                    friend: "Ale říkali mi, že mi jinak účet zablokují 😬",
-                    responses: [
-                        { text: "Tak jim to napiš, chci s tebou večer hrát 😄", next: "tree3_wrong1" },
-                        { text: "Je to divný, nedělej to. Zneužijou tvé osobní údaje.", next: "tree3_correct2", points: 1 }
-                    ]
-                },
-                tree3_correct2: {
-                    friend: "Přesně! To není bezpečné. 👏",
-                    responses: [
-                        { text: "Vždy chránit osobní údaje 🔐😄", next: "tree3_end", points: 1 },
-                        { text: "*zadám si svoje údaje, získám si odměnu sám.", next: "tree3_badSolo" }
-                    ]
-                },
-                tree3_wrong1: {
-                    friend: "Hmm, to asi nebylo nejlepší rozhodnutí. 😕",
-                    responses: [
-                        { text: "Máš pravdu, příště si dám pozor. 😞", next: "tree3_end", points: 1 },
-                        { text: "To je jedno, co s tím můžou dělat? 🤔", next: "tree3_wrong2" }
-                    ]
-                },
-                tree3_wrong2: {
-                    friend: "Přišla mi SMS, že jsem si objednal balík a že ho mám vyzvednout, přijede mi na mojí adresu, ale já si nic neobjednával 🤔",
-                    responses: [
-                        { text: "Vyzvedni ho, třeba to budou body navíc do herního obchodu 👏", next: "tree3_endBad" },
-                        { text: "Napiš na podporu hry, hlavně nic nevyzvedávej 🚨", next: "tree3_end", points: 1 }
-                    ],
-                },
-                tree3_end: {
-                    friend: "Díky, už jsem klidnější 👏",
-                    responses: [],
-                    end: true
-                },
-                tree3_endBad: {
-                    friend: "Nebylo to zdarma, zaplatil jsem při převzetí 200Kč, v krabici byla gumová kachnička😭",
-                    responses: [],
-                    end: true
-                },
-                tree3_badSolo: {
-                    friend: "SMS: přišel Vám balík s herními předměty, vysvedněte si ho v Alzabox.",
-                    responses: [
-                        { text: "*jít vyzvednout balík, zaplatit dobírku 200Kč 👏", next: "tree3_endBadSolo" },
-                        { text: "*napiš na podporu hry, hlavně nic nevyzvedávej 🚨", next: "tree3_endSolo", points: 1 }
-                    ],
-                },
-                tree3_endSolo: {
-                    friend: "*vyhnul/a jsem se podvodu😌",
-                    responses: [],
-                    end: true
-                },
-                tree3_endBadSolo: {
-                    friend: "*v balíku byla jen gumová kachnička, naletěl jsem 😬",
-                    responses: [],
-                    end: true
-                }
-            },
-            fake_account_tree: {
-                start: {
-                    friend: "Někdo mi napsal přes Instagram a tvrdí, že je školní admin. Požádal mě o mé přihlášení do školního systému. Mám mu věřit?",
-                    responses: [
-                        { text: "To zní divný, napiš na školní podporu nebo učiteli IT. 🚨", next: "tree4_correct1", points: 1 },
-                        { text: "Možná, zní to důvěryhodně. 🤨", next: "tree4_wrong1" }
-                    ]
-                },
-                tree4_correct1: {
-                    friend: "Prý je to urgentní, mohl se mi tam prý někdo nabourat. 😳",
-                    responses: [
-                        { text: "Je to vážný, dej mu rychle své údaje 😬", next: "tree4_wrong1" },
-                        { text: "Ignoruj ho, napiš e-mail IT učiteli.", next: "tree4_correct2", points: 1 }
-                    ]
-                },
-                tree4_correct2: {
-                    friend: "Díky! Ukázalo se, že ten účet byl falešný! 😳",
-                    responses: [
-                        { text: "Hlavně, že se to vyřešilo🙌", next: "tree4_end", points: 1 }
-                    ]
-                },
-                tree4_wrong1: {
-                    friend: "Tak jsem mu je poslal, prý mi tam 'opraví' známky za to, že jsem mu pomohl 🤩",
-                    responses: [
-                        { text: "Hele, to je hodně divný, rychle si změň heslo a napiš do školy 😓", next: "tree4_end", points: 1 },
-                        { text: "Super, kéž by mi taky 'opravil' známky 😊", next: "tree4_endBad" }
-                    ]
-                },
-                tree4_end: {
-                    friend: "Díky za pomoc, nevědel jsem, co dělat. Jsi nej 👏",
-                    responses: [],
-                    end: true
-                },
-                tree4_endBad: {
-                    friend: "Chtěl jsem se před chvilkou přihlásit na školní účet, prý mám špatné heslo. Zítra zajdu za učitelem IT 😬",
-                    responses: [],
-                    end: true
-                }
-            },
-            clickbait_tree: {
-                start: {
-                    friend: "Wow! Právě jsem vyhrál nový iPhone! Musím jen kliknout na tenhle odkaz! 📱😲 https://newiphone.cz/getIphone=true",
-                    responses: [
-                        { text: "To bude podvod, neklikej! ⚠️", next: "tree5_correct1", points: 1 },
-                        { text: "Super, pak mi ho ukážeš 🤩", next: "tree5_wrong1" }
-                    ]
-                },
-                tree5_correct1: {
-                    friend: "Ale co když ne, já chci nový mobil 😅",
-                    responses: [
-                        { text: "Tyhle věci jsou always podezřelý, nedělej to 🧐", next: "tree5_correct2", points: 1 },
-                        { text: "Tak jo, co se může stát, buď budeš mít mobil nebo ne 😅", next: "tree5_wrong1" }
-                    ]
-                },
-                tree5_correct2: {
-                    friend: "Poslední slovo, mám to zkusit nebo ne 😅",
-                    responses: [
-                        { text: "Nedělej to, je to podvod 😅", next: "tree5_end", points: 1 },
-                        { text: "Tak na to klikni, když to tak moc chceš 😅", next: "tree5_wrong1" }
-                    ]
-                },
-                tree5_wrong1: {
-                    friend: "O-ou... otevřelo mi to divné stránky. 😰",
-                    responses: [
-                        { text: "Rychle to zavři a spusť antivirus 🛑", next: "tree5_endMiddle", points: 1 },
-                        { text: "To je v pohodě, nic se neděje. Budeš mít mobil 😎", next: "tree5_endBad" }
-                    ]
-                },
-                tree5_end: {
-                    friend: "Díky, že jsi mi to rozmluvil/a 😅",
-                    responses: [],
-                    end: true
-                },
-                tree5_endMiddle: {
-                    friend: "To bylo těsný, snad se nic nestalo😬",
-                    responses: [],
-                    end: true
-                },
-                tree5_endBad: {
-                    friend: "Super, to je bezva, dostal jsem Trojskýho koně, alespoň že ho antivirus dal do karantény 😰",
-                    responses: [],
-                    end: true
-                }
-            }
-        };
-
-        const treeKeys = Object.keys(allTrees);
-        const selectedKey = Phaser.Math.RND.pick(treeKeys);
-        this.dialogueTree = allTrees[selectedKey];
 
         this.showNode(this.currentNode);
     }
 
     addFriendMessage(text) {
-        const msgText = this.add.text(20, 0, text, {
-            fontSize: '20px',
-            color: '#d8caff',
-            wordWrap: { width: 500 },
-            fontFamily: '"Segoe UI Mono", monospace'
-        });
-
+        const msgText = this.add.text(20, 0, text, { fontSize: '20px', color: '#d8caff', wordWrap: { width: 500 }, fontFamily: '"Segoe UI Mono", monospace' });
         const padding = 20;
         const bubbleWidth = msgText.width + padding * 2;
         const bubbleHeight = msgText.height + padding;
-
-        const bubble = this.add.graphics();
-        bubble.fillStyle(0x3a345e, 1);
-        bubble.fillRoundedRect(0, 0, bubbleWidth, bubbleHeight, 15);
-        bubble.lineStyle(2, 0x6441a5);
-        bubble.strokeRoundedRect(0, 0, bubbleWidth, bubbleHeight, 15);
-
+        const bubble = this.add.graphics().fillStyle(0x3a345e, 1).fillRoundedRect(0, 0, bubbleWidth, bubbleHeight, 15);
         const container = this.add.container(0, this.chatHeight, [bubble, msgText]);
-        msgText.setPosition(padding, padding / 2);
-
         this.chatContainer.add(container);
-
         this.chatHeight += bubbleHeight + 15;
         this.adjustScrollAfterNewMessage();
     }
@@ -400,57 +199,39 @@ class ChatScene extends Phaser.Scene {
         const msgText = this.add.text(0, 0, text, {
             fontSize: '20px',
             color: '#f0e6ff',
-            wordWrap: { width: 500 },
+            wordWrap: { width: 400 }, // Zmenšeno, aby se zpráva vlezla do okna
             fontFamily: '"Segoe UI Mono", monospace'
         });
-
+    
         const padding = 20;
         const bubbleWidth = msgText.width + padding * 2;
         const bubbleHeight = msgText.height + padding;
-
+    
         const bubble = this.add.graphics();
         bubble.fillStyle(0x6441a5, 1);
         bubble.fillRoundedRect(0, 0, bubbleWidth, bubbleHeight, 15);
-        bubble.lineStyle(2, 0x3a345e);
-        bubble.strokeRoundedRect(0, 0, bubbleWidth, bubbleHeight, 15);
-
-        const containerX = 840 - bubbleWidth;
+        
+        // Výpočet pozice zprava (840 je šířka chatovací oblasti)
+        const containerX = 840 - bubbleWidth - 20; 
         const container = this.add.container(containerX, this.chatHeight, [bubble, msgText]);
+        
         msgText.setPosition(padding, padding / 2);
-
         this.chatContainer.add(container);
-
+    
         this.chatHeight += bubbleHeight + 15;
         this.adjustScrollAfterNewMessage();
     }
 
     adjustScrollAfterNewMessage() {
-        const maxHeight = 410;
-        if (this.chatHeight > maxHeight) {
-            this.chatContainer.y = 20 - (this.chatHeight - maxHeight);
-        } else {
-            this.chatContainer.y = 20;
-        }
+        if (this.chatHeight > 410) this.chatContainer.y = 20 - (this.chatHeight - 410);
     }
 
     scrollChatBy(deltaY) {
-        const maxHeight = 410;
         let newY = this.chatContainer.y + deltaY;
-        const minY = 20 - (this.chatHeight - maxHeight);
-        const maxY = 20;
-
-        if (this.chatHeight <= maxHeight) {
-            newY = 20;
-        } else {
-            if (newY < minY) newY = minY;
-            if (newY > maxY) newY = maxY;
-        }
-        this.chatContainer.y = newY;
+        this.chatContainer.y = Phaser.Math.Clamp(newY, 20 - (this.chatHeight - 410), 20);
     }
 
-    clearResponseButtons() {
-        this.responseButtons.removeAll(true);
-    }
+    clearResponseButtons() { this.responseButtons.removeAll(true); }
 
     showResponses(responses) {
         this.clearResponseButtons();
@@ -458,11 +239,14 @@ class ChatScene extends Phaser.Scene {
             this.showEnd();
             return;
         }
-
+    
         let x = 0;
+        // Omezíme šířku celého řádku odpovědí, aby se vešly do boxu
+        const maxButtonWidth = 800; 
+    
         responses.forEach((resp) => {
             const btn = this.add.text(x, 0, resp.text, {
-                fontSize: '24px',
+                fontSize: '18px', // Zmenšeno pro lepší čitelnost více tlačítek
                 backgroundColor: '#5a4dcf',
                 color: '#f0e6ff',
                 padding: { x: 15, y: 10 },
@@ -470,9 +254,9 @@ class ChatScene extends Phaser.Scene {
                 stroke: '#3a2c8d',
                 strokeThickness: 3,
                 fontFamily: '"Segoe UI Mono", monospace',
-                wordWrap: { width: 400 }
+                wordWrap: { width: 350 } // Omezení šířky jednotlivého tlačítka
             }).setInteractive({ useHandCursor: true });
-
+    
             btn.on('pointerdown', () => {
                 this.addPlayerMessage(resp.text);
                 if (resp.points) this.score += resp.points;
@@ -480,73 +264,42 @@ class ChatScene extends Phaser.Scene {
                 this.time.delayedCall(300, () => this.showNode(this.currentNode));
                 this.clearResponseButtons();
             });
-
+    
             this.responseButtons.add(btn);
+            
+            // Posun pro další tlačítko v kontejneru
             x += btn.width + 20;
         });
+        
+        // Pokud by tlačítka přesahovala šířku, můžeme kontejner posunout nebo zarovnat
+        if (x > maxButtonWidth) {
+            this.responseButtons.setScale(0.8); // Případné zmenšení celého bloku
+        }
     }
 
     showNode(nodeKey) {
-        if (!this.dialogueTree[nodeKey]) {
-            console.warn(`Node ${nodeKey} not found.`);
-            return;
-        }
         const node = this.dialogueTree[nodeKey];
+        if (!node) return;
         this.addFriendMessage(node.friend);
-
-        if (node.end) {
-            this.showEnd();
-        } else {
-            this.showResponses(node.responses);
-        }
+        if (node.end) this.showEnd();
+        else this.showResponses(node.responses);
     }
 
     showEnd() {
         this.clearResponseButtons();
+        const endText = this.add.text(0, 10, `Vaše skóre: ${this.score}/${this.maxScore}`, { fontSize: '24px', color: '#f0e6ff' });
+        const nextGameButton = this.add.text(0, 60, "Další hra", { fontSize: '28px', backgroundColor: '#007700', padding: { x: 20, y: 10 } }).setInteractive({ useHandCursor: true });
         
-        // Text se skóre na pozici [0, 10] v rámci kontejneru
-        const endText = this.add.text(0, 10, `Vaše skóre: ${this.score}/${this.maxScore}`, {
-            fontSize: '24px',
-            color: '#f0e6ff',
-            fontFamily: '"Segoe UI Mono", monospace',
-        });
-
-        // Tlačítko pod textem (posunuto na Y: 60), aby se nepřekrývala
-        this.nextGameButton = this.add.text(0, 60, "Další hra", {
-            fontSize: '28px',
-            backgroundColor: '#007700',
-            padding: { x: 20, y: 10 },
-            fill: '#fff',
-            fontStyle: 'bold',
-            align: 'center'
-        }).setInteractive({ useHandCursor: true }); // Opraven hand cursor
-
-        this.nextGameButton.on('pointerover', () => this.nextGameButton.setStyle({ backgroundColor: '#00aa00' }));
-        this.nextGameButton.on('pointerout', () => this.nextGameButton.setStyle({ backgroundColor: '#007700' }));
-
-        this.nextGameButton.on('pointerdown', () => {
-            if (localStorage.getItem('playerScore') !== null) {
-                let current = parseInt(localStorage.getItem('playerScore'));
-                localStorage.setItem('playerScore', current + this.score);
-            } else {
-                localStorage.setItem('playerScore', this.score);
-            }
+        nextGameButton.on('pointerdown', () => {
+            let current = parseInt(localStorage.getItem('playerScore') || 0);
+            localStorage.setItem('playerScore', current + this.score);
             window.location.href = 'linkGame.html';
         });
 
         this.responseButtons.add(endText);
-        this.responseButtons.add(this.nextGameButton);
+        this.responseButtons.add(nextGameButton);
     }
 }
 
-// --- UPRAVENÁ KONFIGURACE HRY ---
-const config = {
-    type: Phaser.AUTO,
-    width: 900,
-    height: 600,
-    backgroundColor: '#1a1a2e',
-    // První scéna v poli (TitleScene) se spustí automaticky jako první
-    scene: [TitleScene, ChatScene] 
-};
-
+const config = { type: Phaser.AUTO, width: 900, height: 600, backgroundColor: '#1a1a2e', scene: [TitleScene, ChatScene] };
 const game = new Phaser.Game(config);

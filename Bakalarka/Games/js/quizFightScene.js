@@ -10,6 +10,43 @@ class QuizFightScene extends Phaser.Scene {
     this.questionBank = [];
   }
 
+  loadFallbackQuestions() {
+    console.warn('Používám lokální fallback otázky.');
+    this.questionBank = [
+      {
+        question: "Co je to phishing?",
+        options: { A: "Typ rybaření", B: "Podvodný e-mail, zpráva či web", C: "Bezpečnostní software" },
+        correct: "B"
+      },
+      {
+        question: "Jak vytvořit silné heslo?",
+        options: { A: "Použít jméno psa", B: "Kombinace znaků a čísel", C: "Kombinace znaků, čísel a symbolů" },
+        correct: "C"
+      },
+      {
+        question: "Co dělat, když vidím podezřelý odkaz?",
+        options: { A: "Kliknout na něj", B: "Ignorovat ho", C: "Nahlásit jako spam" },
+        correct: "C"
+      },
+      {
+        question: "Který údaj byste nikdy neměli sdílet online?",
+        options: { A: "Heslo", B: "Oblíbenou barvu", C: "Typ operačního systému" },
+        correct: "A"
+      },
+      {
+        question: "Co znamená zkratka 2FA?",
+        options: { A: "Dvě falešné adresy", B: "Dvoufázové ověření", C: "Druhá firewall analýza" },
+        correct: "B"
+      },
+      {
+        question: "K čemu slouží antivirus?",
+        options: { A: "K zrychlení internetu", B: "K detekci škodlivého softwaru", C: "Jako kapesník, když má PC rýmu" },
+        correct: "B"
+      }
+    ];
+    this.shuffleQuestions();
+  }
+
   preload() {
     this.load.spritesheet('playerM', 'assets/player_tilesheet.png', {
       frameWidth: 80,
@@ -91,6 +128,7 @@ class QuizFightScene extends Phaser.Scene {
         .select('question, options, correct');
 
       if (error) throw error;
+      if (!dbQuestions || dbQuestions.length === 0) throw new Error('Prázdná DB');
 
       this.questionBank = dbQuestions;
       this.shuffleQuestions();
@@ -99,8 +137,18 @@ class QuizFightScene extends Phaser.Scene {
       this.showStartMenu();
 
     } catch (err) {
-      console.error('Chyba při stahování otázek ze Supabase:', err);
-      this.loadingText.setText('Chyba spojení s databází.\nZkontrolujte připojení a obnovte stránku.');
+      console.error('Chyba při stahování otázek:', err);
+      
+      // ✅ Volání fallbacku
+      this.loadFallbackQuestions();
+      
+      this.loadingText.setText('Databáze není dostupná,\nspouštím offline verzi kvízu...');
+      
+      // Krátká pauza pro zobrazení zprávy
+      this.time.delayedCall(2000, () => {
+        this.loadingText.destroy();
+        this.showStartMenu();
+      });
     }
   }
 

@@ -15,6 +15,7 @@ class RunnerGameScene extends Phaser.Scene {
     this.weakPasswords = [];
     this.mediumPasswords = [];
     this.strongPasswords = [];
+
   }
 
   preload() {
@@ -28,6 +29,45 @@ class RunnerGameScene extends Phaser.Scene {
     });
 
     this.load.image('bg', 'assets/runnerBG.jpeg');
+  }
+
+  loadFallbackPasswords() {
+    console.warn('Používám lokální fallback hesla.');
+    
+    // Slabá hesla (často používaná, předvídatelná)
+    this.weakPasswords = [
+      '123456', 
+      'heslo123', 
+      'admin', 
+      'qwerty', 
+      '111111', 
+      'pokus123'
+    ];
+
+    // Střední hesla (kombinace písmen a čísel, bez speciálních znaků nebo jen jeden)
+    this.mediumPasswords = [
+      'P@ssword2024', 
+      'MojeHeslo88', 
+      'SuperUser99', 
+      'CyberGame2026', 
+      'Bezpecnost10', 
+      'Student2025'
+    ];
+
+    // Silná hesla (komplexní, speciální znaky, náhodné řetězce)
+    this.strongPasswords = [
+      'K9#vL2$mP7!z', 
+      'aB3*fR9&jQ4#', 
+      'xT7@nB2%yW5!', 
+      'vP4&mK9^cL1$', 
+      'hG8!sR3#zJ6%', 
+      'wQ2*bV5@kN7&'
+    ];
+
+    // Inicializace dostupných polí
+    this.availableWeakPasswords = [...this.weakPasswords];
+    this.availableMediumPasswords = [...this.mediumPasswords];
+    this.availableStrongPasswords = [...this.strongPasswords];
   }
 
   // 👇 Změna na ASYNC kvůli await volání databáze
@@ -75,36 +115,40 @@ this.lanes = [250, 450, 650];
     }).setOrigin(0.5).setDepth(10);
 
     try {
-      // 1. Stáhneme data z tabulky "Passwords"
+      // 1. Stáhneme data
       const { data: dbPasswords, error } = await this.supabase
         .from('Passwords')
         .select('password, strength');
 
       if (error) throw error;
+      if (!dbPasswords || dbPasswords.length === 0) throw new Error('Prázdná DB');
 
-      if (!dbPasswords || dbPasswords.length === 0) {
-        throw new Error('Databáze vrátila prázdné pole hesel.');
-      }
-
-      // 2. Roztřídíme hesla do herních polí (vytáhneme čisté řetězce)
+      // Naplnění z DB
       this.weakPasswords = dbPasswords.filter(item => item.strength === 'weak').map(item => item.password);
       this.mediumPasswords = dbPasswords.filter(item => item.strength === 'medium').map(item => item.password);
       this.strongPasswords = dbPasswords.filter(item => item.strength === 'strong').map(item => item.password);
 
-      // Inicializace dostupných hesel pro herní kola
       this.availableWeakPasswords = [...this.weakPasswords];
       this.availableMediumPasswords = [...this.mediumPasswords];
       this.availableStrongPasswords = [...this.strongPasswords];
 
-      // Smažeme načítací text
       loadingText.destroy();
-
-      // 3. Zobrazíme instrukce a výběr postavy
       this.showInstructions();
 
     } catch (err) {
-      console.error('Chyba při stahování dat ze Supabase:', err);
-      loadingText.setText('Chyba při načítání dat z databáze.\nZkontrolujte připojení.');
+      console.error('Chyba Supabase, spouštím fallback:', err);
+      
+      // ✅ Zde voláme náš fallback
+      this.loadFallbackPasswords();
+      
+      // Upravíme text, aby uživatel věděl, co se stalo
+      loadingText.setText('Databáze není dostupná,\nnačítám offline režim...');
+      
+      // Krátká pauza, aby uživatel viděl varování, pak spustíme hru
+      this.time.delayedCall(2000, () => {
+        loadingText.destroy();
+        this.showInstructions();
+      });
     }
   }
 
