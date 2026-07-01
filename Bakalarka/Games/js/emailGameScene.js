@@ -25,52 +25,72 @@ class EmailGameScene extends Phaser.Scene {
         this.round = 1;
         this.score = 0;
 
-        // Vytvoříme dočasný načítací text
-        const loadingText = this.add.text(450, 300, 'Načítám e-maily z databáze...', {
-            fontSize: '24px',
-            color: '#d8caff',
-            fontFamily: '"Segoe UI Mono", monospace'
+        const fallbackEmails = [
+            {
+                sender: "Od: podpora@banka-login-update.com",
+                title: "Předmět: Nutná aktualizace údajů",
+                body: "Vážený kliente, z důvodu bezpečnosti Vás žádáme o přihlášení do internetového bankovnictví přes odkaz níže a ověření identity. https://vase-banka.cz-login",
+                suspicious: ["sender", "body"],
+                suspiciousReasons: {
+                    "sender": "E-mailová doména neodpovídá oficiální bance.",
+                    "body": "Banky nikdy neposílají odkazy na přihlášení v e-mailu."
+                }
+            },
+            {
+                sender: "Od: ceska-posta@info-balicek.net",
+                title: "Předmět: Váš balíček nebyl doručen",
+                body: "Dobrý den, Váš balíček s číslem #9928374 nebyl doručen z důvodu chyby v adrese. Zaplaťte prosím poplatek 25 Kč pro opětovné doručení: https://posta-cz.platba-online.com",
+                suspicious: ["sender", "body"],
+                suspiciousReasons: {
+                    "sender": "Doména odesílatele nepatří oficiální České poště.",
+                    "body": "Pošta nikdy nepožaduje platbu přes podezřelé externí odkazy v SMS/e-mailech."
+                }
+            },
+            {
+                sender: "Od: it-oddeleni@vase-firma.cz",
+                title: "Předmět: DÚLEŹITÉ!!! Změna hesla k e-mailu",
+                body: "Vážení, platnost Vašeho hesla do firemního e-mailu vypršela. Klikněte zde pro nastavení nového hesla do 2 hodin, jinak bude Váš účet zablokován: https://login-mail-update.ru",
+                suspicious: ["title", "body"],
+                suspiciousReasons: {
+                    "title": "Naléhavý tón a výhrůžka zablokováním jsou typické znaky phishingu.",
+                    "body": "Adresa odkazuje na doménu s koncovkou .ru, což je pro českou firmu velmi podezřelé."
+                }
+            }
+        ];
+
+        const loadingText = this.add.text(450, 300, 'Načítám e-maily...', {
+            fontSize: '24px', color: '#d8caff', fontFamily: '"Segoe UI Mono", monospace'
         }).setOrigin(0.5);
 
         try {
-            // Načtení dat z tabulky "Emails" podle tvé přesné struktury
             const { data: dbEmails, error } = await this.supabase
                 .from('Emails')
                 .select('sender, title, body, suspiciousParts, suspiciousReasons');
 
-            if (error) throw error;
+            if (error || !dbEmails || dbEmails.length === 0) throw new Error('DB nedostupná');
 
-            // Kontrola prázdné DB
-            if (!dbEmails || dbEmails.length === 0) {
-                throw new Error('Databáze vrátila prázdné pole e-mailů.');
-            }
-
-            // Přemapování dat s ohledem na správné názvy sloupců (camelCase)
             this.emails = dbEmails.map(email => ({
                 sender: email.sender,
                 title: email.title,
                 body: email.body,
-                suspicious: email.suspiciousParts || [],     // Opraveno zde ✔️
-                suspiciousReasons: email.suspiciousReasons || {} // Opraveno zde ✔️
+                suspicious: email.suspiciousParts || [],
+                suspiciousReasons: email.suspiciousReasons || {}
             }));
 
-            // Výběr prvního náhodného emailu
-            this.currentEmail = Phaser.Utils.Array.GetRandom(this.emails);
-            
-            if (!this.currentEmail) {
-                throw new Error('Nepodařilo se vybrat náhodný e-mail.');
-            }
-
-            this.usedEmails.push(this.currentEmail);
-
-            // Smazání textu a start hry
             loadingText.destroy();
-            this.showTutorial();
-
+            this.prepareGame(); // Volání pomocné funkce pro start
         } catch (err) {
-            console.error('Chyba při stahování e-mailů:', err);
-            loadingText.setText('Chyba při načítání dat. Zkuste obnovit stránku.');
+            console.warn('Používám fallback data:', err);
+            this.emails = fallbackEmails; // Nastavení fallbacku
+            loadingText.destroy();
+            this.prepareGame();
         }
+    }
+
+    prepareGame() {
+        this.currentEmail = Phaser.Utils.Array.GetRandom(this.emails);
+        this.usedEmails.push(this.currentEmail);
+        this.showTutorial();
     }
 
     showTutorial() {
@@ -219,12 +239,12 @@ class EmailGameScene extends Phaser.Scene {
     createEmailPart(key, content, x, y, width, height) {
         // 👇 TENTO ŘÁDEK PŘIDEJ: Nahradí textové "\n" za skutečný nový řádek
         const formattedContent = content ? content.replace(/\\n/g, '\n') : '';
-    
+
         const border = this.add.rectangle(x, y, width, height, 0x3a345e)
             .setOrigin(0)
             .setStrokeStyle(3, 0x6441a5)
             .setInteractive({ useHandCursor: true });
-    
+
         // 👇 ZMĚŇ 'content' NA 'formattedContent'
         const text = this.add.text(x + 15, y + 15, formattedContent, {
             fontSize: '20px',
@@ -232,7 +252,7 @@ class EmailGameScene extends Phaser.Scene {
             wordWrap: { width: width - 30 },
             fontFamily: '"Segoe UI Mono", monospace'
         });
-    
+
         border.on('pointerdown', () => this.toggleSelection(key, border));
         this.textElements[key] = { text, border };
     }
