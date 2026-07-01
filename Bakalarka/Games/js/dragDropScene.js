@@ -80,8 +80,29 @@ class DragDropScene extends Phaser.Scene {
 
       } catch (err) {
         console.error('Chyba při stahování dat ze Supabase:', err);
-        this.guideText.setText('Chyba spojení s databází.\nZkontrolujte připojení a obnovte stránku.');
-      }
+        
+        // --- FALLBACK SCÉNÁŘE ---
+        this.scenarios = [
+            {
+                title: "Postup při podezřelém e-mailu",
+                actions: ["Neotevírat přílohy a odkazy", "Nahlásit jako phishing", "Zablokovat odesílatele", "Smazat e-mail"]
+            },
+            {
+                title: "Počítač Vám napadl virus skrytý v instalaci photoshopu",
+                actions: ["Odinstalovat a smazat soubory", "Spustit antivirus", "Zkontrolovat výsledek kontroly", "Informovat kamarády před touto hrozbou"]
+            },
+            {
+                title: "Reakce na telefonát z 'banky'",
+                actions: ["Ověřit totožnost volajícího", "Nepřevádět peníze na 'bezpečné účty'", "Zavolat na oficiální linku banky", "Detailně popsat, co po Vás volající chtěl"]
+            }
+        ];
+
+        console.warn('Používám fallback scénáře.');
+        
+        this.overlay.destroy();
+        this.guideText.destroy();
+        this.initGame();
+    }
     });
   }
 
