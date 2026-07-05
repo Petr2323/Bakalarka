@@ -60,6 +60,19 @@
       background-color: #7a69ff;
       transform: scale(1.05);
     }
+
+    .contact-footer {
+      position: fixed;
+      bottom: 10px;
+      right: 10px;
+      font-size: 12px;
+      color: rgba(224, 223, 255, 0.6);
+      background-color: rgba(26, 26, 46, 0.8);
+      padding: 8px 12px;
+      border-radius: 8px;
+      border: 1px solid rgba(122, 105, 255, 0.3);
+      pointer-events: none; /* Aby nebránil klikání, pokud by byl přes něco */
+    }
   </style>
 </head>
 
@@ -73,6 +86,10 @@
   <button class="start-button" onclick="window.location.href='index.html'">
     🔙 Vrátit se do menu
   </button>
+
+  <div class="contact-footer">
+    Pro nahlášení chyb mě kontaktujte na: <strong>mattravencz@gmail.com</strong>
+  </div>
 
   <script>
     // Migrate old score if it exists
