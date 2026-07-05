@@ -7,17 +7,17 @@
   <title>Hodnocení hráče</title>
   <style>
     body {
-      font-family: Arial, sans-serif;
+      font-family: 'Segoe UI', Arial, sans-serif;
       padding: 20px;
-      background-color: #f2f2f2;
-      color: #333;
+      background-color: #1a1a2e; /* Tmavé herní pozadí */
+      color: #e0dfff; /* Světle fialový text */
       max-width: 800px;
       margin: auto;
       text-align: center;
     }
 
     h1 {
-      color: #0073e6;
+      color: #7a69ff; /* Jasnější fialová */
     }
 
     .score {
@@ -26,38 +26,38 @@
     }
 
     .grade {
-      font-size: 26px;
+      font-size: 22px;
       margin-top: 20px;
       font-weight: bold;
-      color: #0073e6;
+      color: #ffffff;
     }
 
     .grade-img {
       margin: 25px auto 0 auto;
       max-width: 100%;
       height: auto;
-      border-radius: 10px;
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+      border-radius: 15px;
+      border: 3px solid #6441a5; /* Fialový rámeček */
+      box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
       display: block;
     }
-
 
     .start-button {
       display: block;
       margin: 40px auto 0 auto;
       padding: 12px 30px;
       font-size: 18px;
-      background-color: #007BFF;
+      background-color: #5a4dcf; /* Tlačítková fialová */
       color: white;
-      border: none;
-      border-radius: 8px;
+      border: 2px solid #3a2c8d;
+      border-radius: 12px;
       cursor: pointer;
-      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+      box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
       transition: background-color 0.3s ease, transform 0.2s ease;
     }
 
     .start-button:hover {
-      background-color: #0056b3;
+      background-color: #7a69ff;
       transform: scale(1.05);
     }
   </style>
@@ -66,9 +66,9 @@
 <body>
 
   <h1>🎯 Tvůj výsledek</h1>
-  <p class="score">Skóre: <span id="scoreDisplay">0</span> / 19</p>
+  <p class="score">Skóre: <span id="scoreDisplay">0</span> / 21</p>
   <p class="grade" id="gradeDisplay"></p>
-  <img id="gradeImage" class="grade-img" src="" alt="" style="display: none;" />
+  <img id="gradeImage" class="grade-img" src="" alt="Výsledek" style="display: none;" />
 
   <button class="start-button" onclick="window.location.href='index.html'">
     🔙 Vrátit se do menu
@@ -88,13 +88,13 @@
     let gradeSentence = '';
     let imageUrl = '';
 
-    if (score >= 16) {
+    if (score >= 18) {
       gradeSentence = 'Skvělý výkon! Tvoje výsledky jsou opravdu vynikající a ukazují, že máš výborný základ a jen tak někdo si na tebe nepřijde. Velká gratulace!';
       imageUrl = 'https://media2.giphy.com/media/v1.Y2lkPTc5MGI3NjExMGVkZ3o2M2NhM2NpZTl4YTh6cXA2Y2hicG9ucjZmbjZ0ZGsyMW4xYiZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/7FyMQm2vBiTjG/giphy.gif';
-    } else if (score >= 13) {
+    } else if (score >= 14) {
       gradeSentence = 'Velmi dobré! Dosáhl jsi solidního výsledku a je vidět, že tomu rozumíš. Trocha doladění a můžeš dosáhnout ještě lepších výsledků.';
       imageUrl = 'https://media.giphy.com/media/l0MYt5jPR6QX5pnqM/giphy.gif';
-    } else if (score >= 9) {
+    } else if (score >= 10) {
       gradeSentence = 'Slušný výkon, ještě to chce doladit! Už máš dobrý základ, ale určitě se vyplatí věnovat pozornost detailům a zlepšit některé oblasti.';
       imageUrl = 'https://media3.giphy.com/media/v1.Y2lkPTc5MGI3NjExMW11MmNqZ3Z5am9jdm1tdzk0dGR3eGcyMGZtdGE4YWp0N3pva2cwNyZlcD12MV9pbnRlcm5hbF9naWZfYnlfaWQmY3Q9Zw/7ZjmsISzWnreE/giphy.gif';
     } else {
@@ -107,7 +107,6 @@
     const img = document.getElementById('gradeImage');
     img.src = imageUrl;
     img.style.display = 'block';
-    img.alt = grade;
   </script>
 
 </body>
