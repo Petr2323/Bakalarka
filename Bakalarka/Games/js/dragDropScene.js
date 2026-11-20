@@ -243,13 +243,6 @@ class DragDropScene extends Phaser.Scene {
         this.checkAnswer();
       }
     });
-
-    if (this.scoreText) this.scoreText.setText(`Celkové skóre: ${this.score}`);
-    else {
-      this.scoreText = this.add.text(30, 20, `Celkové skóre: ${this.score}`, {
-        fontSize: '18px', fill: '#ffffff', fontStyle: 'bold', stroke: '#000', strokeThickness: 2,
-      });
-    }
   }
 
   returnToOriginal(action) {
@@ -324,7 +317,6 @@ class DragDropScene extends Phaser.Scene {
     // Aktualizace skóre
     this.score += points;
     localStorage.setItem('playerScore', this.score);
-    this.scoreText.setText(`Celkové skóre: ${this.score}`);
 
     // Načtení aktuálního kola Drag & Drop hry
     let currentRound = parseInt(localStorage.getItem('dragDropRound')) || 1;
