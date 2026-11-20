@@ -13,7 +13,7 @@ Aplikace kombinuje webové rozhraní (HTML/CSS) pro hlavní menu, nápovědu a v
 
 ## Spuštění a dostupnost
 
-- **Online verze:** `https://petr2323.github.io/Bakalarka/`
+- **Online verze:** /https://petr2323.github.io/Bakalarka/
 
 ## Struktura projektu
 
